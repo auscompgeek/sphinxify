@@ -1,0 +1,19 @@
+[build-system]
+requires = ["flit"]
+build-backend = "flit.buildapi"
+
+[tool.flit.metadata]
+module = "sphinxify"
+author = "David Vo"
+author-email = "david@vovo.id.au"
+home-page = "https://github.com/auscompgeek/sphinxify"
+requires-python = ">=3.6"
+classifiers = [
+	"Intended Audience :: Developers",
+	"License :: OSI Approved :: BSD License",
+	"Programming Language :: Python :: 3",
+]
+keywords = "javadoc sphinx"
+
+[tool.flit.scripts]
+sphinxify = "sphinxify:main"
