@@ -5,7 +5,7 @@ import re
 import sys
 from typing import List, Tuple
 
-__version__ = '0.1'
+__version__ = '0.2'
 
 FIND_FUNC_RE = r'(.*)\n\s*((?:(?:public|protected|private|static|final|synchronized|abstract|default|native)\s+)+)(?:([\w<>[\]]+)\s+)?(\w+)\s*\(([^)]*)\)'
 
