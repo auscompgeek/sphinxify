@@ -210,8 +210,11 @@ def process(txt: str) -> str:
 def main():
     text = sys.stdin.read()
     if len(sys.argv) > 1:
-        if sys.argv[1] == 'yaml':
-            print(process_yamlgen(text))
+        modes = {
+            'yaml': process_yamlgen,
+            'raw': process_raw,
+        }
+        print(modes[sys.argv[1]](text))
     else:
         print(process(text))
 
