@@ -160,6 +160,11 @@ def process_yamlgen(txt: str) -> str:
     return t
 
 
+def process_cstring(txt: str) -> str:
+    t = process_raw(txt)
+    return '"{}"'.format(t.replace("\n", '\\n"\n"'))
+
+
 def process(txt: str) -> str:
     # remove diff formatting if present
     txt = re.sub(r"(?m)^\+", "", txt)
@@ -203,7 +208,11 @@ def process(txt: str) -> str:
 def main():
     text = sys.stdin.read()
     if len(sys.argv) > 1:
-        modes = {"yaml": process_yamlgen, "raw": process_raw}
+        modes = {
+            "yaml": process_yamlgen,
+            "raw": process_raw,
+            "cstring": process_cstring,
+        }
         print(modes[sys.argv[1]](text))
     else:
         print(process(text))
