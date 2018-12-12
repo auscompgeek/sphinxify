@@ -88,7 +88,7 @@ def process_doc(txt: str) -> str:
 
     text = "\n".join(lines).strip()
     text = re.sub("\n{2,}", text, "\n\n")
-    to_append = []
+    to_append = [""]
 
     # indent each parameter evenly
     pindent = max((len(p[0]) for p in params), default=0)
