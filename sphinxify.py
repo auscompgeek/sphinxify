@@ -81,6 +81,7 @@ def process_doc(txt: str) -> str:
 
     text = "\n".join(lines).strip()
     text = re.sub("\n{2,}", text, "\n\n")
+    to_append = []
 
     # indent each parameter evenly
     pindent = max((len(p[0]) for p in params), default=0)
@@ -93,24 +94,24 @@ def process_doc(txt: str) -> str:
         if not pp:
             continue
 
-        text += f'\n{pname}{" " * (pindent - len(pname))}{pp[0]}\n'
+        to_append.append(f'\n{pname}{" " * (pindent - len(pname))}{pp[0]}')
         for line in pp[1:]:
             if line:
-                text += f"{pindent_str}{line}\n"
+                to_append.append(f"{pindent_str}{line}")
             else:
-                text += "\n"
+                to_append.append("")
 
     if returns:
         returns = trim_lines(returns)
         # returns always needs a newline before it
-        text += "\n:returns: " + returns[0]
+        to_append.append("\n:returns: " + returns[0])
         for line in returns[1:]:
             if line:
-                text += " " * 10 + line + "\n"
+                to_append.append(" " * 10 + line)
             else:
-                text += "\n"
+                to_append.append("")
 
-    return text
+    return text + "\n".join(to_append)
 
 
 def java_type_to_python(type: str) -> str:
