@@ -6,7 +6,7 @@ import sys
 import textwrap
 from typing import List, Tuple
 
-__version__ = "0.2"
+__version__ = "0.3"
 
 FIND_FUNC_RE = r"(.*)\n\s*((?:(?:public|protected|private|static|final|synchronized|abstract|default|native)\s+)+)(?:([\w<>[\]]+)\s+)?(\w+)\s*\(([^)]*)\)"
 
@@ -47,26 +47,33 @@ def process_doc(txt: str) -> str:
 
         line = line.replace("/*", "").replace("*/", "")
         if line.startswith("*"):
-            line = line[1:]
+            line = line[1:].lstrip()
 
-        line = line.replace("<p>", "")
+        if line.startswith((r"\fn ", r"\class ")):
+            lines[i] = ""
+            continue
 
-        p = re.search(r"@param\W+(\w+)", line)
+        if line.startswith(r"\brief "):
+            line = line[len(r"\brief "):]
+        elif line.startswith(r"\enum "):
+            line = ' '.join(line.split()[2:])
+        else:
+            line = line.replace("<p>", "")
+
+        p = re.search(r"^[\\@]param\W+(\w+)", line)
         if p:
-            line = re.sub(r"@param\W+\w+(\W+)?", "", line)
+            line = re.sub(r"^[\\@]param\W+\w+(\W+)?", "", line)
             paramidx += 1
             params.append((p.group(1), []))
         else:
-            r = re.search(r"@returns?\W*", line)
+            r = re.search(r"^[\\@]returns?\W*", line)
             if r:
-                line = re.sub(r"@returns?\W*", "", line)
+                line = re.sub(r"^[\\@]returns?\W*", "", line)
                 found_returns = True
 
         line = re.sub(r"{@link\W+#(\w+?)\(.*?\)\W*}", r":meth:`.\1`", line)
         line = re.sub(r"{@link\W+(\w+)#(\w+)\(.*?\)\W*}", r":meth:`.\1.\2`", line)
         line = re.sub(r"{@link\W+#(\w+?)\W*}", r":class:`.\1`", line)
-
-        line = line.strip()
 
         if found_returns:
             lines[i] = ""
