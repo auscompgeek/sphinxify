@@ -1,5 +1,5 @@
 # sphinxify
-Convert Javadoc (and Doxygen, maybe) to Sphinx docstrings.
+Convert Javadoc and Doxygen to Sphinx docstrings.
 
 ## Why?
 The [RobotPy][] project ports Java libraries to Python.
