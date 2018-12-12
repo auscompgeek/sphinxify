@@ -3,6 +3,7 @@
 
 import re
 import sys
+import textwrap
 from typing import List, Tuple
 
 __version__ = "0.2"
@@ -136,17 +137,10 @@ def java_type_to_python(type: str) -> str:
 
 
 def format_docstring(text: str, indent: str = " " * 8) -> str:
-    # indent all
-    lines = text.splitlines()
-    for i, line in enumerate(lines[1:], 1):
-        if line:
-            lines[i] = indent + line
+    if text.count('\n') == 0:
+        return f'{indent}"""{text}"""'
 
-    if len(lines) > 1:
-        lines.append(indent)
-
-    lines[-1] += '"""'
-    return '"""' + "\n".join(lines)
+    return textwrap.indent('"""{}\n"""'.format(text), indent)
 
 
 def process_raw(txt: str) -> str:
@@ -161,7 +155,7 @@ def process_raw(txt: str) -> str:
 def process_yamlgen(txt: str) -> str:
     t = process_raw(txt)
 
-    t = "  doc: |\n" + t.replace("\n", "\n" + " " * 4)
+    t = "  doc: |\n" + textwrap.indent(t, " " * 4)
     return t
 
 
@@ -198,9 +192,9 @@ def process(txt: str) -> str:
             ret_type = "None"
 
         if "static" in modifiers:
-            t = f'@classmethod\n    def {func_name}(cls{args}) -> {ret_type}:\n{" "*8}{t}'
+            t = f'@classmethod\n    def {func_name}(cls{args}) -> {ret_type}:\n{t}'
         else:
-            t = f'def {func_name}(self{args}) -> {ret_type}:\n{" "*8}{t}'
+            t = f'def {func_name}(self{args}) -> {ret_type}:\n{t}'
 
     return t
 
