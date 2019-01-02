@@ -87,7 +87,7 @@ def process_doc(txt: str) -> str:
             lines[i] = line
 
     text = "\n".join(lines).strip()
-    text = re.sub("\n{2,}", text, "\n\n")
+    text = re.sub("\n{2,}", "\n\n", text)
     to_append = [""]
 
     # indent each parameter evenly
