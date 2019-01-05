@@ -54,9 +54,9 @@ def process_doc(txt: str) -> str:
             continue
 
         if line.startswith(r"\brief "):
-            line = line[len(r"\brief "):]
+            line = line[len(r"\brief ") :]
         elif line.startswith(r"\enum "):
-            line = ' '.join(line.split()[2:])
+            line = " ".join(line.split()[2:])
         else:
             line = line.replace("<p>", "")
 
@@ -145,7 +145,7 @@ def java_type_to_python(type: str) -> str:
 
 
 def format_docstring(text: str, indent: str = " " * 8) -> str:
-    if text.count('\n') == 0:
+    if text.count("\n") == 0:
         return f'{indent}"""{text}"""'
 
     return textwrap.indent('"""{}\n"""'.format(text), indent)
@@ -205,9 +205,9 @@ def process(txt: str) -> str:
             ret_type = "None"
 
         if "static" in modifiers:
-            t = f'@classmethod\n    def {func_name}(cls{args}) -> {ret_type}:\n{t}'
+            t = f"@classmethod\n    def {func_name}(cls{args}) -> {ret_type}:\n{t}"
         else:
-            t = f'def {func_name}(self{args}) -> {ret_type}:\n{t}'
+            t = f"def {func_name}(self{args}) -> {ret_type}:\n{t}"
 
     return t
 
