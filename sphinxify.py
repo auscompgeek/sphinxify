@@ -210,9 +210,9 @@ def process(txt: str) -> str:
             ret_type = "None"
 
         if "static" in modifiers:
-            t = f"@classmethod\n    def {func_name}(cls{args}) -> {ret_type}:\n{t}"
+            t = f"    @classmethod\n    def {func_name}(cls{args}) -> {ret_type}:\n{t}"
         else:
-            t = f"def {func_name}(self{args}) -> {ret_type}:\n{t}"
+            t = f"    def {func_name}(self{args}) -> {ret_type}:\n{t}"
 
     return t
 
