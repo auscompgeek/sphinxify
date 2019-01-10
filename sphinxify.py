@@ -172,6 +172,11 @@ def process_cstring(txt: str) -> str:
     return '"{}"'.format(t.replace("\n", '\\n"\n"'))
 
 
+def process_comment(txt: str) -> str:
+    t = process_raw(txt)
+    return textwrap.indent(t, " " * 4 + "#: ")
+
+
 def process(txt: str) -> str:
     # remove diff formatting if present
     txt = re.sub(r"(?m)^\+", "", txt)
@@ -219,6 +224,7 @@ def main():
             "yaml": process_yamlgen,
             "raw": process_raw,
             "cstring": process_cstring,
+            "comment": process_comment,
         }
         print(modes[sys.argv[1]](text))
     else:
