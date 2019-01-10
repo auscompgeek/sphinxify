@@ -36,13 +36,16 @@ def trim_lines(lines: List[str]) -> List[str]:
 
 
 def process_doc(txt: str) -> str:
+    """Convert a doc comment to Sphinx reST."""
+
     params: List[Tuple[str, List[str]]] = []
     returns = []
     paramidx = -1
     found_returns = False
 
     lines = txt.splitlines()
-    for i, line in enumerate(lines):
+    new_lines = []
+    for line in lines:
         line = line.strip()
 
         line = line.replace("/*", "").replace("*/", "")
@@ -50,7 +53,6 @@ def process_doc(txt: str) -> str:
             line = line[1:].lstrip()
 
         if line.startswith((r"\fn ", r"\class ")):
-            lines[i] = ""
             continue
 
         if line.startswith(r"\brief "):
@@ -76,17 +78,15 @@ def process_doc(txt: str) -> str:
         line = re.sub(r"{@link\W+#(\w+?)\W*}", r":class:`.\1`", line)
 
         if found_returns:
-            lines[i] = ""
             returns.append(line)
 
         elif paramidx != -1:
-            lines[i] = ""
             params[paramidx][1].append(line)
 
         else:
-            lines[i] = line
+            new_lines.append(line)
 
-    text = "\n".join(lines).strip()
+    text = "\n".join(new_lines).strip()
     text = re.sub("\n{2,}", "\n\n", text)
     to_append = [""]
 
@@ -122,6 +122,8 @@ def process_doc(txt: str) -> str:
 
 
 def java_type_to_python(type: str) -> str:
+    """Turn a Java type into a Python type hint."""
+
     if type == "void":
         return "None"
     if type == "byte[]":
@@ -145,6 +147,8 @@ def java_type_to_python(type: str) -> str:
 
 
 def format_docstring(text: str, indent: str = " " * 8) -> str:
+    """Wrap a doc string to be valid Python source for a docstring."""
+
     if text.count("\n") == 0:
         return f'{indent}"""{text}"""'
 
@@ -152,6 +156,8 @@ def format_docstring(text: str, indent: str = " " * 8) -> str:
 
 
 def process_raw(txt: str) -> str:
+    """Convert the first doc comment in txt into Sphinx reST."""
+
     # remove diff formatting if present
     txt = re.sub(r"(?m)^\+", "", txt)
 
@@ -178,6 +184,8 @@ def process_comment(txt: str) -> str:
 
 
 def process(txt: str) -> str:
+    """Convert the first Java method in txt into a Python stub."""
+
     # remove diff formatting if present
     txt = re.sub(r"(?m)^\+", "", txt)
 
