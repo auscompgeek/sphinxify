@@ -9,6 +9,9 @@ author-email = "david@vovo.id.au"
 home-page = "https://github.com/auscompgeek/sphinxify"
 license = "BSD-3-Clause"
 requires-python = ">=3.6"
+requires = [
+	"dataclasses; python_version < '3.7'",
+]
 description-file = "README.md"
 classifiers = [
 	"Development Status :: 5 - Production/Stable",

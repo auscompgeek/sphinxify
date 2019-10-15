@@ -4,9 +4,10 @@
 import re
 import sys
 import textwrap
+from dataclasses import dataclass
 from typing import List, Tuple
 
-__version__ = "0.4"
+__version__ = "0.5"
 
 FIND_FUNC_RE = r"(.*)\n\s*((?:(?:public|protected|private|static|final|synchronized|abstract|default|native)\s+)+)(?:([\w<>[\]]+)\s+)?(\w+)\s*\(([^)]*)\)"
 
@@ -35,97 +36,119 @@ def trim_lines(lines: List[str]) -> List[str]:
     return "\n".join(lines).strip().split("\n")
 
 
+@dataclass
+class Doc:
+    #: The description prose before any parameters are listed.
+    desc: str
+    #: List of all the parameter names and their descriptions (as a list of lines).
+    params: List[Tuple[str, List[str]]]
+    #: The return value description (as a list of lines).
+    returns: List[str]
+
+    @classmethod
+    def from_comment(cls, txt: str) -> "Doc":
+        """Create a Doc from a doc comment."""
+
+        params: List[Tuple[str, List[str]]] = []
+        returns = []
+        paramidx = -1
+        found_returns = False
+
+        lines = txt.splitlines()
+        new_lines = []
+        for line in lines:
+            line = line.strip()
+
+            line = line.replace("/*", "").replace("*/", "")
+            if line.startswith("*"):
+                line = line[1:].lstrip()
+
+            if line.startswith((r"\fn ", r"\class ")):
+                continue
+
+            if line.startswith(r"\brief "):
+                line = line[len(r"\brief ") :]
+            elif line.startswith(r"\enum "):
+                line = " ".join(line.split()[2:])
+            else:
+                line = line.replace("<p>", "").replace("<br>", "\n")
+
+            p = re.search(r"^[\\@]param\W+(\w+)", line)
+            if p:
+                line = re.sub(r"^[\\@]param\W+\w+(\W+)?", "", line)
+                paramidx += 1
+                params.append((p.group(1), []))
+            else:
+                r = re.search(r"^[\\@]returns?\W*", line)
+                if r:
+                    line = re.sub(r"^[\\@]returns?\W*", "", line)
+                    found_returns = True
+
+            line = re.sub(r"{@link\W+#(\w+?)\(.*?\)\W*}", r":meth:`.\1`", line)
+            line = re.sub(r"{@link\W+(\w+)#(\w+)\(.*?\)\W*}", r":meth:`.\1.\2`", line)
+            line = re.sub(r"{@link\W+#(\w+?)\W*}", r":class:`.\1`", line)
+
+            line = re.sub(r"{@code ([^}]+)}", r"``\1``", line)
+
+            line = line.replace("<ul>", "").replace("</ul>", "")
+            line = line.replace("<li>", "- ").replace("</li>", "")
+
+            line = re.sub(r"</?i>", "*", line)
+
+            if found_returns:
+                returns.append(line)
+
+            elif paramidx != -1:
+                params[paramidx][1].append(line)
+
+            else:
+                new_lines.append(line)
+
+        text = "\n".join(new_lines).strip()
+        text = re.sub("\n{2,}", "\n\n", text)
+
+        return cls(text, params=params, returns=returns)
+
+    def __str__(self) -> str:
+        """Convert a Doc to Sphinx reST."""
+
+        to_append = [""]
+
+        # indent each parameter evenly
+        pindent = max((len(p[0]) for p in self.params), default=0)
+        pindent_str = " " * pindent
+
+        # indent each parameter and append
+        for name, lines in self.params:
+            pname = f":param {name}: "
+            pp = trim_lines(lines)
+            if not pp:
+                continue
+
+            to_append.append(f'\n{pname}{" " * (pindent - len(pname))}{pp[0]}')
+            for line in pp[1:]:
+                if line:
+                    to_append.append(f"{pindent_str}{line}")
+                else:
+                    to_append.append("")
+
+        if self.returns:
+            returns = trim_lines(self.returns)
+            # returns always needs a newline before it
+            to_append.append("\n:returns: " + returns[0])
+            for line in returns[1:]:
+                if line:
+                    to_append.append(" " * 10 + line)
+                else:
+                    to_append.append("")
+
+        return self.text + "\n".join(to_append)
+
+
 def process_doc(txt: str) -> str:
     """Convert a doc comment to Sphinx reST."""
 
-    params: List[Tuple[str, List[str]]] = []
-    returns = []
-    paramidx = -1
-    found_returns = False
-
-    lines = txt.splitlines()
-    new_lines = []
-    for line in lines:
-        line = line.strip()
-
-        line = line.replace("/*", "").replace("*/", "")
-        if line.startswith("*"):
-            line = line[1:].lstrip()
-
-        if line.startswith((r"\fn ", r"\class ")):
-            continue
-
-        if line.startswith(r"\brief "):
-            line = line[len(r"\brief ") :]
-        elif line.startswith(r"\enum "):
-            line = " ".join(line.split()[2:])
-        else:
-            line = line.replace("<p>", "")
-
-        p = re.search(r"^[\\@]param\W+(\w+)", line)
-        if p:
-            line = re.sub(r"^[\\@]param\W+\w+(\W+)?", "", line)
-            paramidx += 1
-            params.append((p.group(1), []))
-        else:
-            r = re.search(r"^[\\@]returns?\W*", line)
-            if r:
-                line = re.sub(r"^[\\@]returns?\W*", "", line)
-                found_returns = True
-
-        line = re.sub(r"{@link\W+#(\w+?)\(.*?\)\W*}", r":meth:`.\1`", line)
-        line = re.sub(r"{@link\W+(\w+)#(\w+)\(.*?\)\W*}", r":meth:`.\1.\2`", line)
-        line = re.sub(r"{@link\W+#(\w+?)\W*}", r":class:`.\1`", line)
-
-        line = re.sub(r"{@code ([^}]+)}", r"``\1``", line)
-
-        line = line.replace("<ul>", "").replace("</ul>", "")
-        line = line.replace("<li>", "- ").replace("</li>", "")
-
-        line = re.sub(r"</?i>", "*", line)
-
-        if found_returns:
-            returns.append(line)
-
-        elif paramidx != -1:
-            params[paramidx][1].append(line)
-
-        else:
-            new_lines.append(line)
-
-    text = "\n".join(new_lines).strip()
-    text = re.sub("\n{2,}", "\n\n", text)
-    to_append = [""]
-
-    # indent each parameter evenly
-    pindent = max((len(p[0]) for p in params), default=0)
-    pindent_str = " " * pindent
-
-    # indent each parameter and append
-    for name, lines in params:
-        pname = f":param {name}: "
-        pp = trim_lines(lines)
-        if not pp:
-            continue
-
-        to_append.append(f'\n{pname}{" " * (pindent - len(pname))}{pp[0]}')
-        for line in pp[1:]:
-            if line:
-                to_append.append(f"{pindent_str}{line}")
-            else:
-                to_append.append("")
-
-    if returns:
-        returns = trim_lines(returns)
-        # returns always needs a newline before it
-        to_append.append("\n:returns: " + returns[0])
-        for line in returns[1:]:
-            if line:
-                to_append.append(" " * 10 + line)
-            else:
-                to_append.append("")
-
-    return text + "\n".join(to_append)
+    return str(Doc.from_comment(txt))
 
 
 def java_type_to_python(type: str) -> str:
