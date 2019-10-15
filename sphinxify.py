@@ -187,7 +187,7 @@ def process_cstring(txt: str) -> str:
 
 def process_comment(txt: str) -> str:
     t = process_raw(txt)
-    return textwrap.indent(t, " " * 4 + "#: ")
+    return " " * 4 + "#: " + t.replace("\n", "\n" + " " * 4 + "#: ")
 
 
 def process(txt: str) -> str:
