@@ -77,6 +77,13 @@ def process_doc(txt: str) -> str:
         line = re.sub(r"{@link\W+(\w+)#(\w+)\(.*?\)\W*}", r":meth:`.\1.\2`", line)
         line = re.sub(r"{@link\W+#(\w+?)\W*}", r":class:`.\1`", line)
 
+        line = re.sub(r"{@code ([^}]+)}", r"``\1``", line)
+
+        line = line.replace("<ul>", "").replace("</ul>", "")
+        line = line.replace("<li>", "- ").replace("</li>", "")
+
+        line = re.sub(r"</?i>", "*", line)
+
         if found_returns:
             returns.append(line)
 
