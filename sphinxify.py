@@ -7,7 +7,7 @@ import textwrap
 from dataclasses import dataclass
 from typing import List, Tuple
 
-__version__ = "0.5"
+__version__ = "0.5.1"
 
 FIND_FUNC_RE = r"(.*)\n\s*((?:(?:public|protected|private|static|final|synchronized|abstract|default|native)\s+)+)(?:([\w<>[\]]+)\s+)?(\w+)\s*\(([^)]*)\)"
 
@@ -142,7 +142,7 @@ class Doc:
                 else:
                     to_append.append("")
 
-        return self.text + "\n".join(to_append)
+        return self.desc + "\n".join(to_append)
 
 
 def process_doc(txt: str) -> str:
