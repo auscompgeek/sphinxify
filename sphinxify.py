@@ -7,7 +7,7 @@ import textwrap
 from dataclasses import dataclass
 from typing import List, Tuple
 
-__version__ = "0.5.1"
+__version__ = "0.5.2"
 
 FIND_FUNC_RE = r"(.*)\n\s*((?:(?:public|protected|private|static|final|synchronized|abstract|default|native)\s+)+)(?:([\w<>[\]]+)\s+)?(\w+)\s*\(([^)]*)\)"
 
@@ -94,6 +94,7 @@ class Doc:
             line = line.replace("<li>", "- ").replace("</li>", "")
 
             line = re.sub(r"</?i>", "*", line)
+            line = line.strip()
 
             if found_returns:
                 returns.append(line)
