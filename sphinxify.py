@@ -5,9 +5,9 @@ import re
 import sys
 import textwrap
 from dataclasses import dataclass
-from typing import List, Tuple
+from typing import Callable, List, Tuple
 
-__version__ = "0.5.3"
+__version__ = "0.6"
 
 FIND_FUNC_RE = r"(.*)\n\s*((?:(?:public|protected|private|static|final|synchronized|abstract|default|native)\s+)+)(?:([\w<>[\]]+)\s+)?(\w+)\s*\(([^)]*)\)"
 
@@ -46,13 +46,28 @@ class Doc:
     returns: List[str]
 
     @classmethod
-    def from_comment(cls, txt: str) -> "Doc":
-        """Create a Doc from a doc comment."""
+    def from_comment(
+        cls, txt: str, fix_method_name: Callable[[str], str] = lambda x: x
+    ) -> "Doc":
+        """Create a Doc from a doc comment.
+
+        Arguments:
+            txt: The doc comment to convert.
+            fix_method_name: A callback to convert method names in links.
+        """
 
         params: List[Tuple[str, List[str]]] = []
         returns = []
         paramidx = -1
         found_returns = False
+
+        def make_self_method_ref(match: re.Match) -> str:
+            return f":meth:`.{fix_method_name(match[1])}`"
+
+        def make_method_ref(match: re.Match) -> str:
+            cls_name = match[1]
+            method = fix_method_name(match[2])
+            return f":meth:`.{cls_name}.{method}`"
 
         lines = txt.splitlines()
         new_lines = []
@@ -84,9 +99,10 @@ class Doc:
                     line = re.sub(r"^[\\@]returns?\W*", "", line)
                     found_returns = True
 
-            line = re.sub(r"{@link\W+#(\w+?)\(.*?\)\W*}", r":meth:`.\1`", line)
-            line = re.sub(r"{@link\W+(\w+)#(\w+)\(.*?\)\W*}", r":meth:`.\1.\2`", line)
-            line = re.sub(r"{@link\W+#(\w+?)\W*}", r":class:`.\1`", line)
+            line = re.sub(r"{@link #(\w+?)\(.*?\)\W*}", make_self_method_ref, line)
+            line = re.sub(r"{@link (\w+)#(\w+)\(.*?\)\W*}", make_method_ref, line)
+            line = re.sub(r"{@link #(\w+)\.(\w+)\W*}", make_method_ref, line)
+            line = re.sub(r"{@link #(\w+?)\W*}", r":class:`.\1`", line)
 
             line = re.sub(r"{@code ([^}]+)}", r"``\1``", line)
 
