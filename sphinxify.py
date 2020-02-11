@@ -7,7 +7,7 @@ import textwrap
 from dataclasses import dataclass
 from typing import Callable, List, Tuple
 
-__version__ = "0.6"
+__version__ = "0.6.1"
 
 FIND_FUNC_RE = r"(.*)\n\s*((?:(?:public|protected|private|static|final|synchronized|abstract|default|native)\s+)+)(?:([\w<>[\]]+)\s+)?(\w+)\s*\(([^)]*)\)"
 
@@ -61,10 +61,10 @@ class Doc:
         paramidx = -1
         found_returns = False
 
-        def make_self_method_ref(match: re.Match) -> str:
+        def make_self_method_ref(match) -> str:
             return f":meth:`.{fix_method_name(match[1])}`"
 
-        def make_method_ref(match: re.Match) -> str:
+        def make_method_ref(match) -> str:
             cls_name = match[1]
             method = fix_method_name(match[2])
             return f":meth:`.{cls_name}.{method}`"
