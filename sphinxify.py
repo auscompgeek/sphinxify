@@ -7,7 +7,7 @@ import textwrap
 from dataclasses import dataclass
 from typing import Callable, List, Tuple
 
-__version__ = "0.6.1"
+__version__ = "0.6.2"
 
 FIND_FUNC_RE = r"(.*)\n\s*((?:(?:public|protected|private|static|final|synchronized|abstract|default|native)\s+)+)(?:([\w<>[\]]+)\s+)?(\w+)\s*\(([^)]*)\)"
 
@@ -81,8 +81,8 @@ class Doc:
             if line.startswith((r"\fn ", r"\class ")):
                 continue
 
-            if line.startswith(r"\brief "):
-                line = line[len(r"\brief ") :]
+            if line.startswith(("@brief ", r"\brief ")):
+                line = line[len("@brief ") :]
             elif line.startswith(r"\enum "):
                 line = " ".join(line.split()[2:])
             else:
