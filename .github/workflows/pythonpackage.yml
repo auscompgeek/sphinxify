@@ -6,22 +6,19 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v1
-    - uses: actions/setup-python@v1
-      with:
-        python-version: 3.7
+    - uses: actions/checkout@v2
+    - uses: actions/setup-python@v2
     - name: Lint with flake8
       run: |
         pip install flake8 flake8-bugbear
         flake8 . --count --select=E9,F,B,B9 --show-source --statistics
     - name: Type check with mypy
-      run: |
-        pip install mypy
-        mypy .
+      uses: tsuyoshicho/action-mypy@v1
+      with:
+        github_token: ${{ secrets.GITHUB_TOKEN }}
+        reporter: github-check
     - name: Check formatting with black
-      run: |
-        pip install black
-        black --check --diff .
+      uses: psf/black@stable
 
   test:
     runs-on: ubuntu-latest
@@ -32,11 +29,13 @@ jobs:
           - 3.6
           - 3.7
           - 3.8
+          - 3.9
+          - 3.10-dev
 
     steps:
-    - uses: actions/checkout@v1
+    - uses: actions/checkout@v2
     - name: Set up Python ${{ matrix.python-version }}
-      uses: actions/setup-python@v1
+      uses: actions/setup-python@v2
       with:
         python-version: ${{ matrix.python-version }}
     - run: pip install .
@@ -50,16 +49,14 @@ jobs:
     if: github.event_name == 'push' && startsWith(github.event.ref, 'refs/tags')
 
     steps:
-    - uses: actions/checkout@v1
-    - uses: actions/setup-python@v1
-      with:
-        python-version: 3.7
+    - uses: actions/checkout@v2
+    - uses: actions/setup-python@v2
     - name: Build packages
       run: |
         pip install flit
         flit build
     - name: Publish to PyPI
-      uses: pypa/gh-action-pypi-publish@v1.0.0a0
+      uses: pypa/gh-action-pypi-publish@v1.4.1
       with:
         user: __token__
         password: ${{ secrets.pypi_password }}
