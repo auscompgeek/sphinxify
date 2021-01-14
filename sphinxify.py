@@ -7,7 +7,7 @@ import textwrap
 from dataclasses import dataclass
 from typing import Callable, List, Tuple
 
-__version__ = "0.6.2"
+__version__ = "0.6.3"
 
 FIND_FUNC_RE = r"(.*)\n\s*((?:(?:public|protected|private|static|final|synchronized|abstract|default|native)\s+)+)(?:([\w<>[\]]+)\s+)?(\w+)\s*\(([^)]*)\)"
 
@@ -57,9 +57,9 @@ class Doc:
         """
 
         params: List[Tuple[str, List[str]]] = []
-        returns = []
-        paramidx = -1
-        found_returns = False
+        returns: List[str] = []
+        in_pre = False
+        indent_para = True
 
         def make_self_method_ref(match) -> str:
             return f":meth:`.{fix_method_name(match[1])}`"
@@ -70,13 +70,32 @@ class Doc:
             return f":meth:`.{cls_name}.{method}`"
 
         lines = txt.splitlines()
-        new_lines = []
+        desc_lines: List[str] = []
+        current_lines = desc_lines
         for line in lines:
             line = line.strip()
 
             line = line.replace("/*", "").replace("*/", "")
-            if line.startswith("*"):
-                line = line[1:].lstrip()
+            if line == "*":
+                line = ""
+            elif line.startswith("* "):
+                line = line[2:]
+
+            if line == "<pre>":
+                in_pre = True
+                current_lines.append("::\n")
+                continue
+            elif line == "</pre>":
+                in_pre = False
+                line = ""
+            elif in_pre:
+                current_lines.append("  " + line)
+                continue
+            elif not line:
+                current_lines = desc_lines
+                indent_para = False
+
+            line = line.lstrip()
 
             if line.startswith((r"\fn ", r"\class ")):
                 continue
@@ -85,19 +104,24 @@ class Doc:
                 line = line[len("@brief ") :]
             elif line.startswith(r"\enum "):
                 line = " ".join(line.split()[2:])
+            elif line.startswith("@deprecated "):
+                current_lines = desc_lines
+                desc_lines.append(":deprecated:")
+                indent_para = True
+                line = line[len("@deprecated ") :]
             else:
                 line = line.replace("<p>", "").replace("<br>", "\n")
 
-            p = re.search(r"^[\\@]param\W+(\w+)", line)
-            if p:
-                line = re.sub(r"^[\\@]param\W+\w+(\W+)?", "", line)
-                paramidx += 1
-                params.append((p.group(1), []))
-            else:
-                r = re.search(r"^[\\@]returns?\W*", line)
-                if r:
-                    line = re.sub(r"^[\\@]returns?\W*", "", line)
-                    found_returns = True
+                p = re.search(r"^[\\@]param\W+(\w+)", line)
+                if p:
+                    line = re.sub(r"^[\\@]param\W+\w+(\W+)?", "", line)
+                    params.append((p.group(1), []))
+                    current_lines = params[-1][1]
+                else:
+                    r = re.search(r"^[\\@]returns?\W*", line)
+                    if r:
+                        line = re.sub(r"^[\\@]returns?\W*", "", line)
+                        current_lines = returns
 
             line = re.sub(r"{@link #(\w+?)\(.*?\)\W*}", make_self_method_ref, line)
             line = re.sub(r"{@link (\w+)#(\w+)\(.*?\)\W*}", make_method_ref, line)
@@ -115,16 +139,12 @@ class Doc:
             line = re.sub(r"</?i>", "*", line)
             line = line.strip()
 
-            if found_returns:
-                returns.append(line)
+            if indent_para:
+                line = "   " + line
 
-            elif paramidx != -1:
-                params[paramidx][1].append(line)
+            current_lines.append(line)
 
-            else:
-                new_lines.append(line)
-
-        text = "\n".join(new_lines).strip()
+        text = "\n".join(desc_lines).strip()
         text = re.sub("\n{2,}", "\n\n", text)
 
         return cls(text, params=params, returns=returns)
