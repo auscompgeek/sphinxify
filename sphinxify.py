@@ -44,6 +44,7 @@ class Doc:
     params: List[Tuple[str, List[str]]]
     #: The return value description (as a list of lines).
     returns: List[str]
+    #: The deprecation message, if any.
     deprecated: Optional[List[str]] = None
 
     @classmethod
@@ -162,25 +163,15 @@ class Doc:
         for name, lines in self.params:
             pname = f":param {name}: "
             pp = trim_lines(lines)
-            if not pp:
-                continue
 
             to_append.append(f'\n{pname}{" " * (pindent - len(pname))}{pp[0]}')
-            for line in pp[1:]:
-                if line:
-                    to_append.append(f"{pindent_str}{line}")
-                else:
-                    to_append.append("")
+            to_append += [pindent_str + line for line in pp[1:]]
 
         if self.returns:
             returns = trim_lines(self.returns)
             # returns always needs a newline before it
             to_append.append("\n:returns: " + returns[0])
-            for line in returns[1:]:
-                if line:
-                    to_append.append(" " * 10 + line)
-                else:
-                    to_append.append("")
+            to_append += [" " * 10 + line for line in returns[1:]]
 
         return self.desc + "\n".join(to_append)
 
