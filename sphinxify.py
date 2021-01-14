@@ -5,9 +5,9 @@ import re
 import sys
 import textwrap
 from dataclasses import dataclass
-from typing import Callable, List, Tuple
+from typing import Callable, List, Tuple, Optional
 
-__version__ = "0.6.3"
+__version__ = "0.7"
 
 FIND_FUNC_RE = r"(.*)\n\s*((?:(?:public|protected|private|static|final|synchronized|abstract|default|native)\s+)+)(?:([\w<>[\]]+)\s+)?(\w+)\s*\(([^)]*)\)"
 
@@ -44,6 +44,7 @@ class Doc:
     params: List[Tuple[str, List[str]]]
     #: The return value description (as a list of lines).
     returns: List[str]
+    deprecated: Optional[List[str]] = None
 
     @classmethod
     def from_comment(
@@ -58,8 +59,8 @@ class Doc:
 
         params: List[Tuple[str, List[str]]] = []
         returns: List[str] = []
+        deprecated: Optional[List[str]] = None
         in_pre = False
-        indent_para = True
 
         def make_self_method_ref(match) -> str:
             return f":meth:`.{fix_method_name(match[1])}`"
@@ -93,7 +94,6 @@ class Doc:
                 continue
             elif not line:
                 current_lines = desc_lines
-                indent_para = False
 
             line = line.lstrip()
 
@@ -105,9 +105,8 @@ class Doc:
             elif line.startswith(r"\enum "):
                 line = " ".join(line.split()[2:])
             elif line.startswith("@deprecated "):
-                current_lines = desc_lines
-                desc_lines.append(":deprecated:")
-                indent_para = True
+                deprecated = []
+                current_lines = deprecated
                 line = line[len("@deprecated ") :]
             else:
                 line = line.replace("<p>", "").replace("<br>", "\n")
@@ -139,20 +138,21 @@ class Doc:
             line = re.sub(r"</?i>", "*", line)
             line = line.strip()
 
-            if indent_para:
-                line = "   " + line
-
             current_lines.append(line)
 
         text = "\n".join(desc_lines).strip()
         text = re.sub("\n{2,}", "\n\n", text)
 
-        return cls(text, params=params, returns=returns)
+        return cls(text, params=params, returns=returns, deprecated=deprecated)
 
     def __str__(self) -> str:
         """Convert a Doc to Sphinx reST."""
 
         to_append = [""]
+
+        if self.deprecated is not None:
+            to_append.append("\n:deprecated: " + self.deprecated[0])
+            to_append += [" " * 13 + line for line in self.deprecated[1:]]
 
         # indent each parameter evenly
         pindent = max((len(p[0]) for p in self.params), default=0)
