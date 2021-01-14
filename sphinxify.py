@@ -1,11 +1,12 @@
 #!/usr/bin/env python3
 """Convert Javadoc to Sphinx docstrings."""
 
+import collections
 import re
 import sys
 import textwrap
 from dataclasses import dataclass
-from typing import Callable, List, Tuple, Optional
+from typing import Callable, Dict, List, Optional
 
 __version__ = "0.7"
 
@@ -40,8 +41,8 @@ def trim_lines(lines: List[str]) -> List[str]:
 class Doc:
     #: The description prose before any parameters are listed.
     desc: str
-    #: List of all the parameter names and their descriptions (as a list of lines).
-    params: List[Tuple[str, List[str]]]
+    #: Ordered mapping of parameter names and their descriptions (as a list of lines).
+    params: Dict[str, List[str]]
     #: The return value description (as a list of lines).
     returns: List[str]
     #: The deprecation message, if any.
@@ -58,7 +59,7 @@ class Doc:
             fix_method_name: A callback to convert method names in links.
         """
 
-        params: List[Tuple[str, List[str]]] = []
+        params: Dict[str, List[str]] = collections.OrderedDict()
         returns: List[str] = []
         deprecated: Optional[List[str]] = None
         in_pre = False
@@ -115,8 +116,8 @@ class Doc:
                 p = re.search(r"^[\\@]param\W+(\w+)", line)
                 if p:
                     line = re.sub(r"^[\\@]param\W+\w+(\W+)?", "", line)
-                    params.append((p.group(1), []))
-                    current_lines = params[-1][1]
+                    param_name = p.group(1)
+                    current_lines = params[param_name] = []
                 else:
                     r = re.search(r"^[\\@]returns?\W*", line)
                     if r:
@@ -160,7 +161,7 @@ class Doc:
         pindent_str = " " * pindent
 
         # indent each parameter and append
-        for name, lines in self.params:
+        for name, lines in self.params.items():
             pname = f":param {name}: "
             pp = trim_lines(lines)
 
