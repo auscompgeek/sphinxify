@@ -42,6 +42,8 @@ jobs:
     - name: Test /dev/null
       run: |
         python -m sphinxify < /dev/null
+    - name: Test corpus
+      run: tests/test.sh
 
   publish:
     runs-on: ubuntu-latest
