@@ -8,7 +8,7 @@ import textwrap
 from dataclasses import dataclass
 from typing import Callable, Dict, List, Optional
 
-__version__ = "0.7.2"
+__version__ = "0.7.3"
 
 FIND_FUNC_RE = r"(.*)\n\s*((?:(?:public|protected|private|static|final|synchronized|abstract|default|native)\s+)+)(?:([\w<>[\]]+)\s+)?(\w+)\s*\(([^)]*)\)"
 
@@ -152,31 +152,37 @@ class Doc:
     def __str__(self) -> str:
         """Convert a Doc to Sphinx reST."""
 
-        to_append = [""]
+        to_append = ["\n"]
 
         if self.deprecated is not None:
-            to_append.append("\n:deprecated: " + self.deprecated[0])
+            to_append.append(":deprecated: " + self.deprecated[0])
             to_append += [" " * 13 + line for line in self.deprecated[1:]]
 
-        # indent each parameter evenly
-        pindent = max((len(p[0]) for p in self.params), default=0)
-        pindent_str = " " * pindent
+            # keep params in their own list
+            to_append.append("")
 
-        # indent each parameter and append
-        for name, lines in self.params.items():
-            pname = f":param {name}: "
-            pp = trim_lines(lines)
+        if self.params:
+            # indent each parameter evenly
+            pindent = max(map(len, self.params)) + len(":param : ")
+            pindent_str = " " * pindent
 
-            to_append.append(f'\n{pname}{" " * (pindent - len(pname))}{pp[0]}')
-            to_append += [pindent_str + line for line in pp[1:]]
+            # indent each parameter and append
+            for name, lines in self.params.items():
+                pname = f":param {name}: "
+                pp = trim_lines(lines)
+
+                to_append.append(f'{pname}{" " * (pindent - len(pname))}{pp[0]}')
+                to_append += [pindent_str + line for line in pp[1:]]
+
+            # make sure there is a blank line between params and returns
+            to_append.append("")
 
         if self.returns:
             returns = trim_lines(self.returns)
-            # returns always needs a newline before it
-            to_append.append("\n:returns: " + returns[0])
+            to_append.append(":returns: " + returns[0])
             to_append += [" " * 10 + line for line in returns[1:]]
 
-        return self.desc + "\n".join(to_append)
+        return self.desc + "\n".join(to_append).rstrip()
 
 
 def process_doc(txt: str) -> str:
