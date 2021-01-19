@@ -8,7 +8,7 @@ import textwrap
 from dataclasses import dataclass
 from typing import Callable, Dict, List, Optional
 
-__version__ = "0.7.1"
+__version__ = "0.7.2"
 
 FIND_FUNC_RE = r"(.*)\n\s*((?:(?:public|protected|private|static|final|synchronized|abstract|default|native)\s+)+)(?:([\w<>[\]]+)\s+)?(\w+)\s*\(([^)]*)\)"
 
@@ -83,6 +83,8 @@ class Doc:
                 line = ""
             elif line.startswith("* "):
                 line = line[2:]
+            elif line.startswith("*< "):
+                line = line[3:]
 
             if line == "<pre>":
                 in_pre = True
