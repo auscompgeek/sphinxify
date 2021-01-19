@@ -8,7 +8,7 @@ import textwrap
 from dataclasses import dataclass
 from typing import Callable, Dict, List, Optional
 
-__version__ = "0.7"
+__version__ = "0.7.1"
 
 FIND_FUNC_RE = r"(.*)\n\s*((?:(?:public|protected|private|static|final|synchronized|abstract|default|native)\s+)+)(?:([\w<>[\]]+)\s+)?(\w+)\s*\(([^)]*)\)"
 
@@ -94,7 +94,7 @@ class Doc:
             elif in_pre:
                 current_lines.append("  " + line)
                 continue
-            elif not line:
+            elif not line and current_lines is not returns:
                 current_lines = desc_lines
 
             line = line.lstrip()
