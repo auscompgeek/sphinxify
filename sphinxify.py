@@ -6,9 +6,9 @@ import re
 import sys
 import textwrap
 from dataclasses import dataclass
-from typing import Callable, Dict, List, Optional
+from typing import Callable, List, Optional
 
-__version__ = "0.7.3"
+__version__ = "0.8"
 
 FIND_FUNC_RE = r"(.*)\n\s*((?:(?:public|protected|private|static|final|synchronized|abstract|default|native)\s+)+)(?:([\w<>[\]]+)\s+)?(\w+)\s*\(([^)]*)\)"
 
@@ -38,15 +38,28 @@ def trim_lines(lines: List[str]) -> List[str]:
 
 
 @dataclass
+class Param:
+    #: The parameter name.
+    name: str
+    #: Lines describing the parameter.
+    lines: List[str]
+
+
+@dataclass
 class Doc:
     #: The description prose before any parameters are listed.
     desc: str
-    #: Ordered mapping of parameter names and their descriptions (as a list of lines).
-    params: Dict[str, List[str]]
+    #: List of parameters.
+    params: List[Param]
     #: The return value description (as a list of lines).
     returns: List[str]
     #: The deprecation message, if any.
     deprecated: Optional[List[str]] = None
+
+    def __post_init__(self) -> None:
+        #: Ordered mapping of parameter names and their descriptions.
+        # We use OrderedDict here because we still support Python 3.6.
+        self._params_dict = collections.OrderedDict((p.name, p) for p in self.params)
 
     @classmethod
     def from_comment(
@@ -59,7 +72,7 @@ class Doc:
             fix_method_name: A callback to convert method names in links.
         """
 
-        params: Dict[str, List[str]] = collections.OrderedDict()
+        params: List[Param] = []
         returns: List[str] = []
         deprecated: Optional[List[str]] = None
         in_pre = False
@@ -119,7 +132,8 @@ class Doc:
                 if p:
                     line = re.sub(r"^[\\@]param\W+\w+(\W+)?", "", line)
                     param_name = p.group(1)
-                    current_lines = params[param_name] = []
+                    current_lines = []
+                    params.append(Param(param_name, current_lines))
                 else:
                     r = re.search(r"^[\\@]returns?\W*", line)
                     if r:
@@ -149,6 +163,9 @@ class Doc:
 
         return cls(text, params=params, returns=returns, deprecated=deprecated)
 
+    def get_param(self, name: str) -> Param:
+        return self._params_dict[name]
+
     def __str__(self) -> str:
         """Convert a Doc to Sphinx reST."""
 
@@ -163,13 +180,13 @@ class Doc:
 
         if self.params:
             # indent each parameter evenly
-            pindent = max(map(len, self.params)) + len(":param : ")
+            pindent = max(len(p.name) for p in self.params) + len(":param : ")
             pindent_str = " " * pindent
 
             # indent each parameter and append
-            for name, lines in self.params.items():
-                pname = f":param {name}: "
-                pp = trim_lines(lines)
+            for param in self.params:
+                pname = f":param {param.name}: "
+                pp = trim_lines(param.lines)
 
                 to_append.append(f'{pname}{" " * (pindent - len(pname))}{pp[0]}')
                 to_append += [pindent_str + line for line in pp[1:]]
