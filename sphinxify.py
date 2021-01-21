@@ -138,7 +138,7 @@ class Doc:
             if line.startswith(r"\li "):
                 line = "-" + line[3:]
 
-            line = re.sub(r"</?b>", "**", line)
+            line = re.sub(r"</?(b|strong)>", "**", line)
             line = re.sub(r"</?i>", "*", line)
             line = line.strip()
 
