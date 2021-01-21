@@ -91,13 +91,16 @@ class Doc:
         for line in lines:
             line = line.strip()
 
-            line = line.replace("/*", "").replace("*/", "")
-            if line == "*":
-                line = ""
-            elif line.startswith("* "):
-                line = line[2:]
-            elif line.startswith("*< "):
-                line = line[3:]
+            if line.startswith("//!< "):
+                line = line[5:]
+            else:
+                line = line.replace("/*", "").replace("*/", "")
+                if line == "*":
+                    line = ""
+                elif line.startswith("* "):
+                    line = line[2:]
+                elif line.startswith("*< "):
+                    line = line[3:]
 
             if line == "<pre>":
                 in_pre = True
