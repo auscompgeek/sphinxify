@@ -8,7 +8,7 @@ import textwrap
 from dataclasses import dataclass
 from typing import Callable, List, Optional
 
-__version__ = "0.8"
+__version__ = "0.8.1"
 
 FIND_FUNC_RE = r"(.*)\n\s*((?:(?:public|protected|private|static|final|synchronized|abstract|default|native)\s+)+)(?:([\w<>[\]]+)\s+)?(\w+)\s*\(([^)]*)\)"
 
@@ -155,7 +155,7 @@ class Doc:
             if line.startswith(r"\li "):
                 line = "-" + line[3:]
 
-            line = re.sub(r"</?(b|strong)>", "**", line)
+            line = re.sub(r"</?b>|<strong> ?| ?</strong>", "**", line)
             line = re.sub(r"</?i>", "*", line)
             line = line.strip()
 
