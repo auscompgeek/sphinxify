@@ -93,6 +93,8 @@ class Doc:
 
             if line.startswith("//!< "):
                 line = line[5:]
+            elif line.startswith("/// "):
+                line = line[4:]
             else:
                 line = line.replace("/*", "").replace("*/", "")
                 if line == "*":
