@@ -104,15 +104,20 @@ class Doc:
                 elif line.startswith("*< "):
                     line = line[3:]
 
-            if line == "<pre>":
+            if line in ("<pre>", "@code"):
                 in_pre = True
                 current_lines.append("::\n")
                 continue
-            elif line == "</pre>":
+            elif line in ("</pre>", "@endcode"):
                 in_pre = False
                 line = ""
             elif in_pre:
                 current_lines.append("  " + line)
+                continue
+            elif line.startswith("@code "):
+                in_pre = True
+                current_lines.append("::\n")
+                current_lines.append("  " + line[6:])
                 continue
             elif not line and current_lines is not returns:
                 current_lines = desc_lines
