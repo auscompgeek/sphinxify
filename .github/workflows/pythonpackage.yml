@@ -1,5 +1,5 @@
 name: Python package
-on: [push]
+on: [push, pull_request]
 
 jobs:
   check:
@@ -13,7 +13,7 @@ jobs:
         pip install flake8 flake8-bugbear
         flake8 . --count --select=E9,F,B,B9 --show-source --statistics
     - name: Type check with mypy
-      uses: tsuyoshicho/action-mypy@v1
+      uses: tsuyoshicho/action-mypy@v3
       with:
         github_token: ${{ secrets.GITHUB_TOKEN }}
         reporter: github-check
@@ -57,6 +57,7 @@ jobs:
       run: |
         pip install flit
         flit build
+        sha256sum -b dist/*
     - name: Publish to PyPI
       uses: pypa/gh-action-pypi-publish@v1.4.1
       with:
