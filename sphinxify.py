@@ -171,6 +171,13 @@ class Doc:
     def get_param(self, name: str) -> Param:
         return self._params_dict[name]
 
+    def remove_param(self, name: str) -> None:
+        to_delete = self._params_dict[name]
+        for i, param in enumerate(self.params):
+            if param is to_delete:
+                del self.params[i]
+        del self._params_dict[name]
+
     def __str__(self) -> str:
         """Convert a Doc to Sphinx reST."""
 
