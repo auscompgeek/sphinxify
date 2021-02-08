@@ -8,7 +8,7 @@ import textwrap
 from dataclasses import dataclass
 from typing import Callable, List, Optional
 
-__version__ = "0.8.1"
+__version__ = "0.8.2"
 
 FIND_FUNC_RE = r"(.*)\n\s*((?:(?:public|protected|private|static|final|synchronized|abstract|default|native)\s+)+)(?:([\w<>[\]]+)\s+)?(\w+)\s*\(([^)]*)\)"
 
