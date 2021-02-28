@@ -1,0 +1,11 @@
+be <b>bold</b>
+be <strong>strong</strong>
+<i>italics</i>
+<em>emphasis</em>
+<sub>subscript</sub>
+<sup>superscript</sup>
+
+<strong>multiline
+  strong</strong>
+<i>multiline
+  italics</i>

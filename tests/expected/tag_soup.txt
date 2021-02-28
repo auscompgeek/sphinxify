@@ -1,0 +1,11 @@
+be **bold**
+be **strong**
+*italics*
+*emphasis*
+:sub:`subscript`
+:sup:`superscript`
+
+:strong:`multiline
+strong`
+:emphasis:`multiline
+italics`

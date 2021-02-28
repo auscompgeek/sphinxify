@@ -162,8 +162,21 @@ class Doc:
             if line.startswith(r"\li "):
                 line = "-" + line[3:]
 
-            line = re.sub(r"</?(b|strong)>", "**", line)
-            line = re.sub(r"</?i>", "*", line)
+            for tag, inline, role in (
+                ("b", "**", "strong"),
+                ("strong", "**", "strong"),
+                ("i", "*", "emphasis"),
+                ("em", "*", "emphasis"),
+            ):
+                if line.count(f"<{tag}>") == line.count(f"</{tag}>"):
+                    line = re.sub(fr"</?{tag}>", inline, line)
+                else:
+                    line = line.replace(f"<{tag}>", f":{role}:`")
+                    line = line.replace(f"</{tag}>", "`")
+
+            line = line.replace("<sub>", ":sub:`").replace("</sub>", "`")
+            line = line.replace("<sup>", ":sup:`").replace("</sup>", "`")
+
             line = line.strip()
 
             current_lines.append(line)
