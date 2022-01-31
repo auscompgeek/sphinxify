@@ -169,7 +169,7 @@ class Doc:
                 ("em", "*", "emphasis"),
             ):
                 if line.count(f"<{tag}>") == line.count(f"</{tag}>"):
-                    line = re.sub(fr"</?{tag}>", inline, line)
+                    line = re.sub(rf"</?{tag}>", inline, line)
                 else:
                     line = line.replace(f"<{tag}>", f":{role}:`")
                     line = line.replace(f"</{tag}>", "`")
