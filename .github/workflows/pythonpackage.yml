@@ -13,8 +13,6 @@ jobs:
       with:
         github_token: ${{ secrets.GITHUB_TOKEN }}
         reporter: github-check
-    - name: Check formatting with black
-      uses: psf/black@stable
 
   test:
     runs-on: ubuntu-latest
@@ -26,7 +24,7 @@ jobs:
           - 3.7
           - 3.8
           - 3.9
-          - 3.10-dev
+          - '3.10'
 
     steps:
     - uses: actions/checkout@v2
