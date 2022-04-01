@@ -268,10 +268,12 @@ def java_type_to_python(type: str) -> str:
 def format_docstring(text: str, indent: str = " " * 8) -> str:
     """Wrap a doc string to be valid Python source for a docstring."""
 
-    if text.count("\n") == 0:
-        return f'{indent}"""{text}"""'
+    raw_prefix = "r" if "\\" in text else ""
 
-    return textwrap.indent('"""{}\n"""'.format(text), indent)
+    if text.count("\n") == 0:
+        return f'{indent}{raw_prefix}"""{text}"""'
+
+    return textwrap.indent(f'{raw_prefix}"""{text}\n"""', indent)
 
 
 def process_raw(txt: str) -> str:
@@ -294,7 +296,7 @@ def process_yamlgen(txt: str) -> str:
 
 def process_cstring(txt: str) -> str:
     t = process_raw(txt)
-    return '"{}"'.format(t.replace("\n", '\\n"\n"'))
+    return '"{}"'.format(t.replace("\\", "\\\\").replace("\n", '\\n"\n"'))
 
 
 def process_comment(txt: str) -> str:
