@@ -1,18 +1,18 @@
 [build-system]
-requires = ["flit_core >=2,<4"]
+requires = ["flit_core >=3.2,<4"]
 build-backend = "flit_core.buildapi"
 
-[tool.flit.metadata]
-module = "sphinxify"
-author = "David Vo"
-author-email = "david@vovo.id.au"
-home-page = "https://github.com/auscompgeek/sphinxify"
-license = "BSD-3-Clause"
+[project]
+name = "sphinxify"
+authors = [
+	{ name = "David Vo", email = "david@vovo.id.au" },
+]
+readme = "README.md"
+license = { file = "LICENSE" }
 requires-python = ">=3.6"
-requires = [
+dependencies = [
 	"dataclasses; python_version < '3.7'",
 ]
-description-file = "README.md"
 classifiers = [
 	"Development Status :: 5 - Production/Stable",
 	"Intended Audience :: Developers",
@@ -24,10 +24,16 @@ classifiers = [
 	"Programming Language :: Python :: 3.7",
 	"Programming Language :: Python :: 3.8",
 	"Programming Language :: Python :: 3.9",
+	"Programming Language :: Python :: 3.10",
+	"Programming Language :: Python :: 3.11",
 ]
-keywords = "javadoc sphinx doxygen"
+keywords = ["javadoc", "sphinx", "doxygen"]
+dynamic = ["version", "description"]
 
-[tool.flit.scripts]
+[project.urls]
+Source = "https://github.com/auscompgeek/sphinxify"
+
+[project.scripts]
 sphinxify = "sphinxify:main"
 
 [tool.ruff]
