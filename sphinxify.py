@@ -135,6 +135,8 @@ class Doc:
                 deprecated = []
                 current_lines = deprecated
                 line = line[len("@deprecated ") :]
+            elif line.startswith("@note "):
+                line = ".. note:: " + line[len("@note ")]
             else:
                 line = line.replace("<p>", "").replace("<br>", "\n")
 
