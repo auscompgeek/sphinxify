@@ -29,3 +29,8 @@ keywords = "javadoc sphinx doxygen"
 
 [tool.flit.scripts]
 sphinxify = "sphinxify:main"
+
+[tool.ruff]
+select = ["E", "F", "B", "B90", "UP", "C4", "I001", "SIM"]
+ignore = ["E501"]
+target-version = "py37"
