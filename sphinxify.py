@@ -8,7 +8,7 @@ import textwrap
 from dataclasses import dataclass
 from typing import Callable, List, Optional
 
-__version__ = "0.9"
+__version__ = "0.10"
 
 FIND_FUNC_RE = r"(.*)\n\s*((?:(?:public|protected|private|static|final|synchronized|abstract|default|native)\s+)+)(?:([\w<>[\]]+)\s+)?(\w+)\s*\(([^)]*)\)"
 
@@ -190,8 +190,8 @@ class Doc:
 
         return cls(text, params=params, returns=returns, deprecated=deprecated)
 
-    def get_param(self, name: str) -> Param:
-        return self._params_dict[name]
+    def get_param(self, name: str) -> Optional[Param]:
+        return self._params_dict.get(name)
 
     def remove_param(self, name: str) -> None:
         to_delete = self._params_dict[name]
