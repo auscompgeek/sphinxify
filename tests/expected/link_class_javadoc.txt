@@ -1,0 +1,4 @@
+Use this method to define your button->command mappings. Buttons can be created by
+instantiating a :class:`.GenericHID` or one of its subclasses ({@link
+edu.wpi.first.wpilibj.Joystick} or :class:`.XboxController`), and then calling passing it to a
+:class:`.JoystickButton`.

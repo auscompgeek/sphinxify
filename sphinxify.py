@@ -155,7 +155,9 @@ class Doc:
             line = re.sub(r"{@link #(\w+?)\(.*?\)\W*}", make_self_method_ref, line)
             line = re.sub(r"{@link (\w+)#(\w+)\(.*?\)\W*}", make_method_ref, line)
             line = re.sub(r"{@link #(\w+)\.(\w+)\W*}", make_method_ref, line)
-            line = re.sub(r"{@link #(\w+?)\W*}", r":class:`.\1`", line)
+            line = re.sub(
+                r"{@link (?:[a-z]\w*\.)*([A-Z]\w+?)\W*}", r":class:`.\1`", line
+            )
 
             line = re.sub(r"{@code ([^}]+)}", r"``\1``", line)
 
