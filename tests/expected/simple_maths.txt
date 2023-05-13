@@ -1,0 +1,4 @@
+This is known to be broken. Output should include an escaped space before the role.
+
+x:sub:`1`
+x:sup:`2`
