@@ -8,7 +8,7 @@ import textwrap
 from dataclasses import dataclass
 from typing import Callable, List, Optional
 
-__version__ = "0.10"
+__version__ = "0.11"
 
 FIND_FUNC_RE = r"(.*)\n\s*((?:(?:public|protected|private|static|final|synchronized|abstract|default|native)\s+)+)(?:([\w<>[\]]+)\s+)?(\w+)\s*\(([^)]*)\)"
 
@@ -75,7 +75,7 @@ class Doc:
         params: List[Param] = []
         returns: List[str] = []
         deprecated: Optional[List[str]] = None
-        in_pre = False
+        in_pre = in_block = begin_block = False
 
         def make_self_method_ref(match) -> str:
             return f":meth:`.{fix_method_name(match[1])}`"
@@ -111,6 +111,8 @@ class Doc:
             elif line in ("</pre>", "@endcode"):
                 in_pre = False
                 line = ""
+            elif in_block and line == "":
+                in_block = False
             elif in_pre:
                 current_lines.append("  " + line)
                 continue
@@ -136,7 +138,8 @@ class Doc:
                 current_lines = deprecated
                 line = line[len("@deprecated ") :]
             elif line.startswith("@note "):
-                line = ".. note:: " + line[len("@note ")]
+                line = ".. note:: " + line[len("@note ") :]
+                begin_block = True
             else:
                 line = line.replace("<p>", "").replace("<br>", "\n")
 
@@ -184,6 +187,11 @@ class Doc:
             line = re.sub(r"\B_\b", r"\\_", line)
 
             line = line.strip()
+            if in_block:
+                line = " " * 3 + line
+            elif begin_block:
+                in_block = True
+                begin_block = False
 
             current_lines.append(line)
 

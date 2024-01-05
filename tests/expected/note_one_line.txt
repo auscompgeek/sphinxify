@@ -1,0 +1,3 @@
+NetworkTables struct-encoded value entry.
+
+.. note:: Unlike NetworkTableEntry, the entry goes away when this is destroyed.

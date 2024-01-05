@@ -1,0 +1,6 @@
+This is a paragraph.
+
+.. note:: This is the start of a note that goes over multiple lines.
+   This should still be part of the note.
+
+:returns: entry
