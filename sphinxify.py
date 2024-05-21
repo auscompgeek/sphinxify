@@ -2,13 +2,13 @@
 """Convert Javadoc to Sphinx docstrings."""
 
 import collections
-from http.server import BaseHTTPRequestHandler, HTTPServer
 import json
 import re
 import sys
 import textwrap
 import webbrowser
 from dataclasses import dataclass
+from http.server import BaseHTTPRequestHandler, HTTPServer
 from typing import Callable, List, Optional
 
 __version__ = "0.11"
