@@ -15,6 +15,9 @@ Run `sphinxify` and give it a Javadoc comment.  It will keep reading until EOF.
 If a Java function prototype is also given, sphinxify will also output a
 Python type-hinted function signature.
 
+You can also run `sphinxify server` and it will pop up a browser that you can
+use to run sphinxify on the input also.
+
 There is also a `sphinxify yaml` mode for the [robotpy-ctre][].
 
 [RobotPy]: https://robotpy.github.io
