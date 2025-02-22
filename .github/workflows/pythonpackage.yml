@@ -64,4 +64,4 @@ jobs:
         name: Packages
         path: dist
     - name: Publish to PyPI
-      uses: pypa/gh-action-pypi-publish@v1.6.11
+      uses: pypa/gh-action-pypi-publish@v1.12.4
