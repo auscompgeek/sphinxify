@@ -36,7 +36,7 @@ dynamic = ["version", "description"]
 Source = "https://github.com/auscompgeek/sphinxify"
 
 [project.scripts]
-sphinxify = "sphinxify:main"
+sphinxify = "sphinxify.__main__:main"
 
 [tool.ruff]
 select = ["E", "F", "B", "B90", "UP", "C4", "I001", "SIM"]
