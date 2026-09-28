@@ -1,8 +1,13 @@
 #!/usr/bin/env python3
 import sys
 
-from sphinxify import process_comment, process_cstring, process_raw
-from sphinxify import process, process_yamlgen
+from sphinxify import (
+    process,
+    process_comment,
+    process_cstring,
+    process_raw,
+    process_yamlgen,
+)
 
 
 def main() -> None:
