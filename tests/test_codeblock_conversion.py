@@ -58,6 +58,24 @@ def test_none_preserves_block(opening, closing, directive):
     assert [b.astext() for b in literal_blocks(result)] == ["if (x) {\n  f();\n}"]
 
 
+@pytest.mark.parametrize(
+    "comment",
+    [
+        "/**\n *\tusing operator(): @code\n *\t\tmeter_t m(5.0);\n *\t\tdouble val = m(); @endcode\n */",
+        r"/** Shortcut for\code *this = other.other.triangularView<(*this)::Mode>() \endcode */",
+    ],
+)
+def test_repository_comment_substitution(comment):
+    rendered = sphinxify.process_doc(
+        comment,
+        code_block_transform=lambda block: sphinxify.CodeBlockReplacement(
+            "value = example()", "python"
+        ),
+    )
+    assert [b.astext() for b in literal_blocks(rendered)] == ["value = example()"]
+    assert "*" not in rendered
+
+
 def test_existing_positional_method_name_callback():
     doc = sphinxify.Doc.from_comment("/** See {@link #Run()} */", str.lower)
     assert doc.desc == "See :meth:`.run`"

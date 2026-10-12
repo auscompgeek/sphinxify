@@ -85,6 +85,34 @@ def test_literal_leading_star_in_block_comment(decoration):
     assert blocks[0].text == "* ptr = 42;"
 
 
+def test_tab_decorated_units_comment():
+    # wpi/units/base.hpp documents operator() with tab-aligned comment stars.
+    comment = (
+        "/**\n"
+        " *\tusing `operator()`: @code\n"
+        " *\t\tmeter_t m(5.0);\n"
+        " *\t\tdouble val = m(); // val == 5.0\t@endcode.\n"
+        " */"
+    )
+    blocks = [c for c in split_comment(comment) if isinstance(c, CodeBlock)]
+    assert len(blocks) == 1
+    assert blocks[0].text.rstrip() == "meter_t m(5.0);\ndouble val = m(); // val == 5.0"
+    assert not any("*" in c for c in split_comment(comment) if isinstance(c, str))
+
+
+def test_eigen_inline_command_without_preceding_space():
+    # Eigen/src/Core/TriangularMatrix.h, operator=(MatrixBase).
+    comment = r"/** Shortcut for\code *this = other.other.triangularView<(*this)::Mode>() \endcode */"
+    chunks = split_comment(comment)
+    blocks = [c for c in chunks if isinstance(c, CodeBlock)]
+    assert blocks == [
+        CodeBlock(
+            "*this = other.other.triangularView<(*this)::Mode>()", None, "doxygen", 0
+        )
+    ]
+    assert chunks[0].strip() == "Shortcut for"
+
+
 def test_inline_javadoc_is_not_a_block():
     assert split_comment("Use {@code x} here") == ["Use {@code x} here"]
 

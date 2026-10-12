@@ -27,7 +27,7 @@ class CodeBlockReplacement:
 CodeBlockTransform = Callable[[CodeBlock], Optional[CodeBlockReplacement]]
 
 _OPEN = re.compile(
-    r"(?P<doxygen>(?<![\w{])[@\\]code\b(?:\{(?P<doxygen_lang>[^}\n]*)\})?)"
+    r"(?P<doxygen>(?:\\code\b|(?<![\w{])@code\b)(?:\{(?P<doxygen_lang>[^}\n]*)\})?)"
     r"|(?P<pre><pre>(?:[ \t\r\n]*(?P<html_code><code>))?)"
     r"|(?P<fence>^[ \t]*(?P<ticks>`{3,}|~{3,})(?P<fence_lang>[^\n]*)\n)",
     re.MULTILINE,
@@ -50,7 +50,7 @@ def _uncomment(txt: str) -> str:
     # Ignore the opening line, which may contain an inline description.
     interior = source_lines[1:] if has_opening else source_lines
     nonempty = [line for line in interior if line.strip()]
-    star_prefix = re.compile(r"^[ \t]*\*(?:<)?(?: |$)")
+    star_prefix = re.compile(r"^[ \t]*\*(?:<)?(?:[ \t]|$)")
     decorated = bool(nonempty) and all(star_prefix.match(line) for line in nonempty)
     lines = []
     for line in source_lines:
