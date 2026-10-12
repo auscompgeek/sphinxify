@@ -26,3 +26,4 @@ repos:
     hooks:
       - id: mypy
         args: []
+        additional_dependencies: [pytest, types-docutils]

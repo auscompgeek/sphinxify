@@ -106,7 +106,7 @@ def split_comment(txt: str) -> List[Union[str, CodeBlock]]:
 
         closing = end.search(txt, opening.end())
         if closing is None:
-            raise ValueError("Unterminated {} code block {}".format(kind, index))
+            raise ValueError(f"Unterminated {kind} code block {index}")
         if language:
             language = language.strip().lstrip(".") or None
         content = txt[opening.end() : closing.start()]

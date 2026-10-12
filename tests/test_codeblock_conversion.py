@@ -89,9 +89,7 @@ def test_blocks_in_all_sections():
 
     def transform(block):
         seen.append(block.text)
-        return sphinxify.CodeBlockReplacement(
-            "example_{}()".format(block.index), "python"
-        )
+        return sphinxify.CodeBlockReplacement(f"example_{block.index}()", "python")
 
     doc = sphinxify.Doc.from_comment(comment, code_block_transform=transform)
     assert seen == ["desc();", "param();", "result();", "deprecated();"]
