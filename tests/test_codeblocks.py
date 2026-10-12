@@ -47,6 +47,44 @@ def test_multiple_inline_blocks():
     assert "between" in chunks[2]
 
 
+@pytest.mark.parametrize(
+    "opening,closing",
+    [("<pre>", "</pre>"), ("<pre><code>", "</code></pre>"), ("@code", "@endcode")],
+)
+def test_common_indentation_preserved(opening, closing):
+    blocks = [
+        c
+        for c in split_comment(
+            opening + "\n    if ready:\n        run()\n    finish()\n" + closing
+        )
+        if isinstance(c, CodeBlock)
+    ]
+    assert blocks[0].text == "if ready:\n    run()\nfinish()"
+
+
+@pytest.mark.parametrize(
+    "opening,closing", [("<pre>", "</pre>"), ("@code", "@endcode"), ("```text", "```")]
+)
+def test_diagram_first_line_indentation(opening, closing):
+    blocks = [
+        c
+        for c in split_comment(opening + "\n   /\\\n  /  \\\n /____\\\n" + closing)
+        if isinstance(c, CodeBlock)
+    ]
+    assert blocks[0].text == "  /\\\n /  \\\n/____\\"
+
+
+@pytest.mark.parametrize("decoration", ["", " * "])
+def test_literal_leading_star_in_block_comment(decoration):
+    content = "\n".join(
+        decoration + line for line in ["@code", "* ptr = 42;", "@endcode"]
+    )
+    blocks = [
+        c for c in split_comment("/**\n" + content + "\n*/") if isinstance(c, CodeBlock)
+    ]
+    assert blocks[0].text == "* ptr = 42;"
+
+
 def test_inline_javadoc_is_not_a_block():
     assert split_comment("Use {@code x} here") == ["Use {@code x} here"]
 

@@ -142,6 +142,23 @@ def test_code_blank_lines_remain_literal(prefix):
     assert literal_blocks(doc)[0].astext() == code
 
 
+@pytest.mark.parametrize("section", ["@note An example.", "@param x An example."])
+@pytest.mark.parametrize(
+    "opening,closing",
+    [("```cpp", "```"), ("~~~cpp", "~~~"), ("@code{.cpp}", "@endcode")],
+)
+def test_block_followed_by_outside_prose(section, opening, closing):
+    doc = sphinxify.process_doc(
+        section + "\n\n" + opening + "\nf();\n" + closing + "\n\nOutside prose."
+    )
+    tree = publish_doctree(doc, settings_overrides={"halt_level": 2})
+    paragraphs = [
+        p for p in tree.findall(nodes.paragraph) if p.astext() == "Outside prose."
+    ]
+    assert len(paragraphs) == 1
+    assert isinstance(paragraphs[0].parent, nodes.document)
+
+
 def test_inline_block_surrounding_prose():
     doc = sphinxify.process_doc(
         "/** Before @code int x; @endcode After */",

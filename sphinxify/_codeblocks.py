@@ -28,7 +28,7 @@ CodeBlockTransform = Callable[[CodeBlock], Optional[CodeBlockReplacement]]
 
 _OPEN = re.compile(
     r"(?P<doxygen>(?<![\w{])[@\\]code\b(?:\{(?P<doxygen_lang>[^}\n]*)\})?)"
-    r"|(?P<pre><pre>[ \t\r\n]*(?P<html_code><code>)?)"
+    r"|(?P<pre><pre>(?:[ \t\r\n]*(?P<html_code><code>))?)"
     r"|(?P<fence>^[ \t]*(?P<ticks>`{3,}|~{3,})(?P<fence_lang>[^\n]*)\n)",
     re.MULTILINE,
 )
@@ -38,16 +38,25 @@ def _uncomment(txt: str) -> str:
     """Remove delimiters at comment boundaries, never inside literal content."""
     txt = txt.strip()
     # The CLI also accepts pasted fragments without the opening /* delimiter.
-    block_comment = txt.startswith("/*") or bool(re.match(r"^\*(?:\s|$)", txt))
+    has_opening = txt.startswith("/*")
+    block_comment = has_opening or bool(re.match(r"^\*(?:\s|$)", txt))
     if block_comment:
         txt = re.sub(r"^/\*[*!]?<? ?", "", txt, count=1)
         if txt.endswith("*/"):
             txt = txt[:-2]
 
+    source_lines = txt.splitlines()
+    # A star is decoration only when the comment consistently uses that style.
+    # Ignore the opening line, which may contain an inline description.
+    interior = source_lines[1:] if has_opening else source_lines
+    nonempty = [line for line in interior if line.strip()]
+    star_prefix = re.compile(r"^[ \t]*\*(?:<)?(?: |$)")
+    decorated = bool(nonempty) and all(star_prefix.match(line) for line in nonempty)
     lines = []
-    for line in txt.splitlines():
+    for line in source_lines:
         if block_comment:
-            line = re.sub(r"^[ \t]*\*(?:<)?(?: |$)", "", line)
+            if decorated:
+                line = star_prefix.sub("", line)
         else:
             line = re.sub(r"^[ \t]*(?:///|//!)<?(?: |$)", "", line)
         lines.append(line)
@@ -91,7 +100,7 @@ def split_comment(txt: str) -> List[Union[str, CodeBlock]]:
                 + re.escape(ticks[0])
                 + "{"
                 + str(len(ticks))
-                + r",}[ \t]*(?:\n|$)",
+                + r",}[ \t]*(?=\n|$)",
                 re.MULTILINE,
             )
 
@@ -100,9 +109,17 @@ def split_comment(txt: str) -> List[Union[str, CodeBlock]]:
             raise ValueError("Unterminated {} code block {}".format(kind, index))
         if language:
             language = language.strip().lstrip(".") or None
-        text = textwrap.dedent(
-            txt[opening.end() : closing.start()].strip("\r\n")
-        ).strip()
+        content = txt[opening.end() : closing.start()]
+        content_lines = content.splitlines()
+        # Remove only delimiter-layout lines. Stripping the entire string would
+        # erase significant first-line indentation in code and diagrams.
+        while content_lines and not content_lines[0].strip():
+            content_lines.pop(0)
+        while content_lines and not content_lines[-1].strip():
+            content_lines.pop()
+        text = textwrap.dedent("\n".join(content_lines))
+        if "\n" not in content:
+            text = text.strip()  # Inline delimiters separate code with spaces.
         result.append(CodeBlock(text, language or None, kind, index))
         index += 1
         pos = closing.end()
