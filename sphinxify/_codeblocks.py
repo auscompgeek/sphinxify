@@ -37,7 +37,8 @@ _OPEN = re.compile(
 def _uncomment(txt: str) -> str:
     """Remove delimiters at comment boundaries, never inside literal content."""
     txt = txt.strip()
-    block_comment = txt.startswith("/*")
+    # The CLI also accepts pasted fragments without the opening /* delimiter.
+    block_comment = txt.startswith("/*") or bool(re.match(r"^\*(?:\s|$)", txt))
     if block_comment:
         txt = re.sub(r"^/\*[*!]?<? ?", "", txt, count=1)
         if txt.endswith("*/"):
