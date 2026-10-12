@@ -1,4 +1,4 @@
-"""Convert Javadoc to Sphinx docstrings."""
+"""Convert Javadoc/Doxygen to Sphinx reStructuredText docstrings."""
 
 import collections
 import re
