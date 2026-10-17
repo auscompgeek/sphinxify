@@ -34,8 +34,7 @@ class Doc:
 
     def __post_init__(self) -> None:
         #: Ordered mapping of parameter names and their descriptions.
-        # We use OrderedDict here because we still support Python 3.6.
-        self._params_dict = collections.OrderedDict((p.name, p) for p in self.params)
+        self._params_dict = {p.name: p for p in self.params}
 
     @classmethod
     def from_comment(
