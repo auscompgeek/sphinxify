@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 import sys
 
-from sphinxify import (
+from sphinxify.from_java import (
     process,
     process_comment,
     process_cstring,

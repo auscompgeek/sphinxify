@@ -2,7 +2,7 @@ import json
 import webbrowser
 from http.server import BaseHTTPRequestHandler, HTTPServer
 
-from sphinxify import process, process_raw
+from sphinxify.from_java import process, process_raw
 
 
 class SphinxifyServer(BaseHTTPRequestHandler):
