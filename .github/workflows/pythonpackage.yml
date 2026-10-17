@@ -5,13 +5,16 @@ on:
     tags: ['*']
   pull_request:
 
+permissions:
+  contents: read
+
 jobs:
   build:
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v4
-    - uses: hynek/build-and-inspect-python-package@v2
+    - uses: actions/checkout@v7
+    - uses: hynek/build-and-inspect-python-package@v3.0.1
 
   test:
     runs-on: ubuntu-22.04
@@ -31,13 +34,13 @@ jobs:
           - '3.15'
 
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v7
     - name: Set up Python ${{ matrix.python-version }}
-      uses: actions/setup-python@v5
+      uses: actions/setup-python@v6
       with:
         python-version: ${{ matrix.python-version }}
     - name: Download packages built by build-and-inspect-python-package
-      uses: actions/download-artifact@v4
+      uses: actions/download-artifact@v8
       with:
         name: Packages
         path: dist
@@ -60,9 +63,9 @@ jobs:
 
     steps:
     - name: Download packages built by build-and-inspect-python-package
-      uses: actions/download-artifact@v4
+      uses: actions/download-artifact@v8
       with:
         name: Packages
         path: dist
     - name: Publish to PyPI
-      uses: pypa/gh-action-pypi-publish@v1.13.0
+      uses: pypa/gh-action-pypi-publish@v1.14.2
