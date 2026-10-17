@@ -1,6 +1,5 @@
 """Convert Javadoc/Doxygen to Sphinx reStructuredText docstrings."""
 
-import collections
 import re
 import warnings
 from dataclasses import dataclass
