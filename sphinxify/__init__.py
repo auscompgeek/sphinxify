@@ -1,11 +1,12 @@
 """Convert Javadoc/Doxygen to Sphinx reStructuredText docstrings."""
 
+import functools
 import re
 import warnings
 from dataclasses import dataclass
-from typing import Callable, List, Optional
+from typing import Callable, Dict, List, Optional
 
-__version__ = "0.13"
+__version__ = "0.13.1"
 
 
 def trim_lines(lines: List[str]) -> List[str]:
@@ -31,9 +32,10 @@ class Doc:
     #: The deprecation message, if any.
     deprecated: Optional[List[str]] = None
 
-    def __post_init__(self) -> None:
-        #: Ordered mapping of parameter names and their descriptions.
-        self._params_dict = {p.name: p for p in self.params}
+    @functools.cached_property
+    def _params_dict(self) -> Dict[str, Param]:
+        """Ordered mapping of parameter names and their descriptions."""
+        return {p.name: p for p in self.params}
 
     @classmethod
     def from_comment(
