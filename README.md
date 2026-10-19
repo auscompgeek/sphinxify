@@ -20,5 +20,8 @@ use to run sphinxify on the input also.
 
 There is also a `sphinxify yaml` mode for the [robotpy-ctre][].
 
+To run the tests, install `tests/requirements.txt`, then run `python -m pytest`
+from the repository root.
+
 [RobotPy]: https://robotpy.github.io
 [robotpy-ctre]: https://github.com/robotpy/robotpy-ctre

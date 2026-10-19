@@ -1,0 +1,3 @@
+pytest
+docutils
+pygments; python_version < "3.9"

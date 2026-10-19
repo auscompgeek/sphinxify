@@ -45,12 +45,12 @@ jobs:
         path: dist
     - name: Install
       run: |
-        pip install dist/*.whl
+        pip install dist/*.whl -r tests/requirements.txt
     - name: Test /dev/null
       run: |
         python -m sphinxify < /dev/null
-    - name: Test corpus
-      run: tests/test.sh
+    - name: Run pytest
+      run: python -m pytest
 
   publish:
     runs-on: ubuntu-latest
