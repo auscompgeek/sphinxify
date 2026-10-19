@@ -4,13 +4,49 @@ import functools
 import re
 import warnings
 from dataclasses import dataclass
-from typing import Callable, Dict, List, Optional
+from typing import Callable, Dict, List, Optional, Tuple, Union
+
+from ._codeblocks import (
+    CodeBlock,
+    CodeBlockReplacement,
+    CodeBlockTransform,
+    split_comment,
+)
 
 __version__ = "0.13.1"
 
 
 def trim_lines(lines: List[str]) -> List[str]:
     return "\n".join(lines).strip().split("\n")
+
+
+@dataclass
+class _Literal:
+    block: CodeBlockReplacement
+    indent: str
+
+
+_Section = List[Union[str, _Literal]]
+
+
+def _render_section(section: _Section) -> str:
+    lines: List[str] = []
+    for item in section:
+        if isinstance(item, str):
+            # Normalize prose blank lines, never the contents of a literal.
+            if item.strip():
+                lines.append(item)
+            elif lines and lines[-1] != "":
+                lines.append("")
+        else:
+            if lines and lines[-1] != "":
+                lines.append("")
+            block = item.block
+            directive = ".. code-block:: " + block.language if block.language else "::"
+            lines.extend([item.indent + directive, ""])
+            lines.extend(item.indent + "   " + line for line in block.text.split("\n"))
+            lines.append("")
+    return "\n".join(lines).strip()
 
 
 @dataclass
@@ -39,19 +75,28 @@ class Doc:
 
     @classmethod
     def from_comment(
-        cls, txt: str, fix_method_name: Callable[[str], str] = lambda x: x
+        cls,
+        txt: str,
+        fix_method_name: Callable[[str], str] = lambda x: x,
+        *,
+        code_block_transform: Optional[CodeBlockTransform] = None,
     ) -> "Doc":
         """Create a Doc from a doc comment.
 
         Arguments:
             txt: The doc comment to convert.
             fix_method_name: A callback to convert method names in links.
+            code_block_transform: Called once per source block, in source order.
+                Return a CodeBlockReplacement, or None to preserve the block.
+
+        Raises:
+            ValueError: A recognized code block has no closing delimiter.
         """
 
-        params: List[Param] = []
-        returns: List[str] = []
-        deprecated: Optional[List[str]] = None
-        in_pre = in_block = begin_block = False
+        param_sections: List[Tuple[str, _Section]] = []
+        returns: _Section = []
+        deprecated: Optional[_Section] = None
+        in_block = begin_block = False
 
         def make_self_method_ref(match) -> str:
             return f":meth:`.{fix_method_name(match[1])}`"
@@ -61,46 +106,48 @@ class Doc:
             method = fix_method_name(match[2])
             return f":meth:`.{cls_name}.{method}`"
 
-        lines = txt.splitlines()
-        desc_lines: List[str] = []
-        current_lines = desc_lines
-        for line in lines:
-            line = line.strip()
-
-            if line.startswith("//!< "):
-                line = line[5:]
-            elif line.startswith("/// "):
-                line = line[4:]
+        lines: List[Union[str, CodeBlock]] = []
+        after_block = False
+        for chunk in split_comment(txt):
+            if isinstance(chunk, CodeBlock):
+                lines.append(chunk)
+                after_block = True
             else:
-                line = line.replace("/*", "").replace("*/", "")
-                if line == "*":
-                    line = ""
-                elif line.startswith("* "):
-                    line = line[2:]
-                elif line.startswith("*< "):
-                    line = line[3:]
+                # The closing marker's newline is not an empty prose paragraph.
+                if after_block:
+                    chunk = re.sub(r"^[ \t]*\n", "", chunk, count=1)
+                lines.extend(chunk.splitlines())
+                after_block = False
 
-            if line in ("<pre>", "@code"):
-                in_pre = True
-                current_lines.append("::\n")
+        desc_lines: _Section = []
+        current_lines = desc_lines
+        for i, token in enumerate(lines):
+            if isinstance(token, CodeBlock):
+                replacement = (
+                    code_block_transform(token) if code_block_transform else None
+                )
+                if replacement is None:
+                    replacement = CodeBlockReplacement(token.text, token.language)
+                current_lines.append(_Literal(replacement, "   " if in_block else ""))
                 continue
-            elif line in ("</pre>", "@endcode"):
-                in_pre = False
-                line = ""
-            elif in_block and line == "":
-                in_block = False
-            elif in_pre:
-                current_lines.append("  " + line)
-                continue
-            elif line.startswith("@code "):
-                in_pre = True
-                current_lines.append("::\n")
-                current_lines.append("  " + line[6:])
-                continue
-            elif not line and current_lines is not returns:
-                current_lines = desc_lines
 
-            line = line.lstrip()
+            line = token.strip()
+            if not line:
+                # Layout whitespace before a block must not detach it from its
+                # parameter, return, deprecation, or note section.
+                following = next(
+                    (
+                        t
+                        for t in lines[i + 1 :]
+                        if isinstance(t, CodeBlock) or t.strip()
+                    ),
+                    None,
+                )
+                if not isinstance(following, CodeBlock):
+                    if in_block:
+                        in_block = False
+                    elif current_lines is not returns:
+                        current_lines = desc_lines
 
             if line.startswith((r"\fn ", r"\class ")):
                 continue
@@ -109,11 +156,12 @@ class Doc:
                 line = line[len("@brief ") :]
             elif line.startswith(r"\enum "):
                 line = " ".join(line.split()[2:])
-            elif line.startswith("@deprecated "):
+            elif line == "@deprecated" or line.startswith("@deprecated "):
                 deprecated = []
+                in_block = False
                 current_lines = deprecated
                 line = line[len("@deprecated ") :]
-            elif line.startswith("@note "):
+            elif line == "@note" or line.startswith("@note "):
                 line = ".. note:: " + line[len("@note ") :]
                 begin_block = True
             else:
@@ -124,12 +172,14 @@ class Doc:
                     line = re.sub(r"^[\\@]param\W+\w+(\W+)?", "", line)
                     param_name = p.group(1)
                     current_lines = []
-                    params.append(Param(param_name, current_lines))
+                    in_block = False
+                    param_sections.append((param_name, current_lines))
                 else:
                     r = re.search(r"^[\\@]returns?\W*", line)
                     if r:
                         line = re.sub(r"^[\\@]returns?\W*", "", line)
                         current_lines = returns
+                        in_block = False
 
             line = re.sub(r"{@link #(\w+?)\(.*?\)\W*}", make_self_method_ref, line)
             line = re.sub(r"{@link (\w+)#(\w+)\(.*?\)\W*}", make_method_ref, line)
@@ -171,10 +221,19 @@ class Doc:
 
             current_lines.append(line)
 
-        text = "\n".join(desc_lines).strip()
-        text = re.sub("\n{2,}", "\n\n", text)
-
-        return cls(text, params=params, returns=returns, deprecated=deprecated)
+        return cls(
+            _render_section(desc_lines),
+            params=[
+                Param(name, _render_section(section).split("\n"))
+                for name, section in param_sections
+            ],
+            returns=_render_section(returns).split("\n") if returns else [],
+            deprecated=(
+                _render_section(deprecated).split("\n")
+                if deprecated is not None
+                else None
+            ),
+        )
 
     def get_param(self, name: str) -> Optional[Param]:
         return self._params_dict.get(name)
@@ -222,13 +281,17 @@ class Doc:
         return self.desc + "\n".join(to_append).rstrip()
 
 
-def process_doc(txt: str) -> str:
-    """Convert a doc comment to Sphinx reST."""
+def process_doc(
+    txt: str, *, code_block_transform: Optional[CodeBlockTransform] = None
+) -> str:
+    """Convert a doc comment to Sphinx reST, optionally transforming code blocks."""
 
-    return str(Doc.from_comment(txt))
+    return str(Doc.from_comment(txt, code_block_transform=code_block_transform))
 
 
-def process_raw(txt: str) -> str:
+def process_raw(
+    txt: str, *, code_block_transform: Optional[CodeBlockTransform] = None
+) -> str:
     """
     Convert the first doc comment in txt into Sphinx reST.
 
@@ -240,4 +303,4 @@ def process_raw(txt: str) -> str:
     warnings.warn(
         "Use sphinxify.from_java.process_raw instead", DeprecationWarning, stacklevel=2
     )
-    return process_raw(txt)
+    return process_raw(txt, code_block_transform=code_block_transform)
