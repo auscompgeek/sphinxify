@@ -1,0 +1,9 @@
+/**
+ * Allocations:
+ * <table>
+ * <tr><td><b>Subsystem</b></td><td><b>Duration (ms)</b></td></tr>
+ * <tr><td><b>Total</b></td><td>5.0</td></tr>
+ * <tr><td>TimedRobot</td><td>?</td></tr>
+ * </table>
+ * After the table.
+ */

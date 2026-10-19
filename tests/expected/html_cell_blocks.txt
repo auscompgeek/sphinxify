@@ -1,0 +1,9 @@
+.. list-table::
+
+   * - - First
+
+       - Second
+     - First
+       Second
+
+       Third paragraph
