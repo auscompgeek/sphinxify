@@ -14,7 +14,9 @@ def read_corpus(path):
     lines = path.read_bytes().splitlines(keepends=True)
     separators = [i for i, line in enumerate(lines) if line == b"=" * 80 + b"\n"]
     if len(separators) != 1:
-        raise ValueError(f"{path}: expected exactly one separator line of 80 '=' characters")
+        raise ValueError(
+            f"{path}: expected exactly one separator line of 80 '=' characters"
+        )
     index = separators[0]
     return b"".join(lines[:index]), b"".join(lines[index + 1 :])
 
