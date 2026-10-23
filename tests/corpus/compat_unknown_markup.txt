@@ -1,0 +1,7 @@
+Text <Unknown>stuff</Unknown>.
+Writes XML comment as "<!-- text -->"
+Writes XML comment as "<!-- text -- >"
+================================================================================
+Text <Unknown>stuff</Unknown>.
+Writes XML comment as "<!-- text -->"
+Writes XML comment as "<!-- text -- >"
