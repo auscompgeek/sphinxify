@@ -1,0 +1,6 @@
+<table>
+<caption>Positive trigger command bindings</caption>
+<tr><th>Method</th><th>Schedules</th><th>Cancels on false</th></tr>
+<tr><td>OnTrue()</td><td>On a rising edge</td><td>No</td></tr>
+<tr><td>WhileTrue()</td><td>On a rising edge</td><td>Yes</td></tr>
+</table>

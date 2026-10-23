@@ -1,0 +1,12 @@
+Allocations:
+
+.. list-table::
+
+   * - **Subsystem**
+     - **Duration (ms)**
+   * - **Total**
+     - 5.0
+   * - TimedRobot
+     - \?
+
+After the table.

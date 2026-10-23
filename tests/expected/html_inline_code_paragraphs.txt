@@ -1,0 +1,5 @@
+Use ``GetEntry()`` and ``std::vector<T>``.
+
+Next
+line
+last.
