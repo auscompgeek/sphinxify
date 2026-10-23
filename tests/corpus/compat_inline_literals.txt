@@ -1,0 +1,27 @@
+Use {@code <code>value</code>} here.
+Use {@code <a href="x">text</a>} here.
+Use {@code <table><tr><td>value</td></tr></table>} here.
+Use {@code std::vector<T} here.
+Use {@code a &copy; b &other} here.
+Use {@code <!-- text -->} here.
+
+Use ``<code>value</code>`` here.
+Use ``<a href="x">text</a>`` here.
+Use ``<table><tr><td>value</td></tr></table>`` here.
+Use ``std::vector<T`` here.
+Use ``a &copy; b &other`` here.
+Use ``<!-- text -->`` here.
+================================================================================
+Use ``<code>value</code>`` here.
+Use ``<a href="x">text</a>`` here.
+Use ``<table><tr><td>value</td></tr></table>`` here.
+Use ``std::vector<T`` here.
+Use ``a &copy; b &other`` here.
+Use ``<!-- text -->`` here.
+
+Use ``<code>value</code>`` here.
+Use ``<a href="x">text</a>`` here.
+Use ``<table><tr><td>value</td></tr></table>`` here.
+Use ``std::vector<T`` here.
+Use ``a &copy; b &other`` here.
+Use ``<!-- text -->`` here.
