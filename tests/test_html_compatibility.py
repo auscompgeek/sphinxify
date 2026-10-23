@@ -80,9 +80,10 @@ def test_adjacent_html_blocks_keep_source_line_note_indentation(html, expected):
     ],
 )
 def test_inline_after_note_paragraph_keeps_indentation(separator, inline, expected):
-    assert process_doc(
-        "@note <p>First</p>" + separator + inline + " is important."
-    ) == expected
+    assert (
+        process_doc("@note <p>First</p>" + separator + inline + " is important.")
+        == expected
+    )
 
 
 @pytest.mark.parametrize(
@@ -111,6 +112,7 @@ def test_note_line_break_preserves_indentation(source, expected):
 
 
 def test_inline_after_note_ends_stays_outside():
-    assert process_doc(
-        "@note <p>First</p>\n\n<code>value</code> is outside."
-    ) == ".. note::\n\n   First\n\n``value`` is outside."
+    assert (
+        process_doc("@note <p>First</p>\n\n<code>value</code> is outside.")
+        == ".. note::\n\n   First\n\n``value`` is outside."
+    )

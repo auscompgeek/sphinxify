@@ -72,7 +72,8 @@ class _Parser(HTMLParser):
         self.literals = literals
         self.block_pattern = (
             re.compile("(" + "|".join(re.escape(key) for key in blocks) + ")")
-            if blocks else None
+            if blocks
+            else None
         )
         self.root = _Element("", {})
         self.stack = [self.root]
@@ -444,9 +445,7 @@ def _remove_source_indent(element: _Element, indent: str) -> None:
             _remove_source_indent(child, indent)
 
 
-def convert_html(
-    text: str, blocks: Optional[Dict[str, Tuple[str, str]]] = None
-) -> str:
+def convert_html(text: str, blocks: Optional[Dict[str, Tuple[str, str]]] = None) -> str:
     """Convert HTML, inserting protected block nodes without parsing their text."""
     # The Doxygen pass has already converted {@code ...} into inline literals.
     # Protect those (and native reST literals) before handing prose to HTMLParser.

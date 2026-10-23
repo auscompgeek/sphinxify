@@ -43,9 +43,10 @@ from sphinxify import CodeBlockReplacement, Doc, process_doc
     ],
 )
 def test_table_in_fields(prefix, expected):
-    assert process_doc(
-        prefix + "\n<table>\n<tr><td>one</td><td>1</td></tr>\n</table>"
-    ) == expected
+    assert (
+        process_doc(prefix + "\n<table>\n<tr><td>one</td><td>1</td></tr>\n</table>")
+        == expected
+    )
 
 
 @pytest.mark.parametrize(
@@ -66,10 +67,13 @@ def test_table_in_fields(prefix, expected):
     ],
 )
 def test_literal_stays_inside_html_list(tag, prefix, expected):
-    assert process_doc(
-        prefix + f"<{tag}><li>Before<pre>code</pre>After</li>"
-        f"<li>Next</li></{tag}>"
-    ) == expected
+    assert (
+        process_doc(
+            prefix + f"<{tag}><li>Before<pre>code</pre>After</li>"
+            f"<li>Next</li></{tag}>"
+        )
+        == expected
+    )
 
 
 @pytest.mark.parametrize(
@@ -88,22 +92,25 @@ def test_wrapped_list_item_in_note_is_one_paragraph(tag, expected):
     "before, after, expected",
     [
         (
-            "", "",
+            "",
+            "",
             '::\n\n   x = """first  \n   second"""\n   print(x) \t',
         ),
         (
-            "<ul><li>Example", "</li></ul>",
+            "<ul><li>Example",
+            "</li></ul>",
             '- Example\n\n  ::\n\n     x = """first  \n     second"""\n     print(x) \t',
         ),
         (
-            "@param x Example\n", "",
-            '\n\n:param x: Example\n'
-            '          \n'
-            '          ::\n'
-            '          \n'
+            "@param x Example\n",
+            "",
+            "\n\n:param x: Example\n"
+            "          \n"
+            "          ::\n"
+            "          \n"
             '             x = """first  \n'
             '             second"""\n'
-            '             print(x) \t',
+            "             print(x) \t",
         ),
     ],
 )
@@ -113,13 +120,18 @@ def test_literal_trailing_whitespace_is_preserved(transformed, before, after, ex
     if transformed:
         kwargs["code_block_transform"] = lambda block: CodeBlockReplacement(code)
     source = "original" if transformed else code
-    assert process_doc(before + "<pre>" + source + "</pre>" + after, **kwargs) == expected
+    assert (
+        process_doc(before + "<pre>" + source + "</pre>" + after, **kwargs) == expected
+    )
 
 
 def test_table_in_note():
-    assert process_doc(
-        "@note Allocations:\n<table><tr><td>one</td><td>1</td></tr></table>"
-    ) == ".. note:: Allocations:\n   \n\n   .. list-table::\n\n      * - one\n        - 1"
+    assert (
+        process_doc(
+            "@note Allocations:\n<table><tr><td>one</td><td>1</td></tr></table>"
+        )
+        == ".. note:: Allocations:\n   \n\n   .. list-table::\n\n      * - one\n        - 1"
+    )
 
 
 @pytest.mark.parametrize(
@@ -152,9 +164,10 @@ def test_unsupported_tables_preserve_content(html):
     ],
 )
 def test_html_code_preserves_underscores(tag, content, expected):
-    assert process_doc(
-        f'Use <{tag} class="identifier">{content}</{tag}> with prose_.'
-    ) == expected
+    assert (
+        process_doc(f'Use <{tag} class="identifier">{content}</{tag}> with prose_.')
+        == expected
+    )
 
 
 @pytest.mark.parametrize("tag", ["strong", "em", "b", "i"])
@@ -163,15 +176,15 @@ def test_html_code_preserves_underscores(tag, content, expected):
     [
         (
             '<{tag}><a href="https://example.com">API reference</a></{tag}>',
-            '`API reference <https://example.com>`__',
+            "`API reference <https://example.com>`__",
         ),
         (
             'pre<{tag}><a href="https://example.com">API reference</a></{tag}>post',
-            r'pre\ `API reference <https://example.com>`__\ post',
+            r"pre\ `API reference <https://example.com>`__\ post",
         ),
         (
             '<{tag}>See <em><a href="https://example.com">API reference</a></em> now.</{tag}>',
-            'See `API reference <https://example.com>`__ now.',
+            "See `API reference <https://example.com>`__ now.",
         ),
     ],
 )
@@ -197,9 +210,10 @@ def test_emphasis_wrapped_code_remains_literal(tag, code_tag):
 
 @pytest.mark.parametrize("code_tag", ["code", "tt"])
 def test_nested_emphasis_wrapped_code_keeps_boundaries(code_tag):
-    assert process_doc(
-        f"pre<strong><em><{code_tag}>foo</{code_tag}></em></strong>post"
-    ) == r"pre\ ``foo``\ post"
+    assert (
+        process_doc(f"pre<strong><em><{code_tag}>foo</{code_tag}></em></strong>post")
+        == r"pre\ ``foo``\ post"
+    )
 
 
 def test_code_block_callback_between_definition_entries():
@@ -224,8 +238,7 @@ def test_code_block_callback_between_list_items():
         ),
     )
     assert result == (
-        "- before\n\n.. code-block:: python\n\n"
-        '   print("<T>&amp;")\n\n- after'
+        "- before\n\n.. code-block:: python\n\n" '   print("<T>&amp;")\n\n- after'
     )
 
 
