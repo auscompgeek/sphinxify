@@ -2,8 +2,9 @@
 
 import re
 import textwrap
+from typing import Optional
 
-from sphinxify import process_doc
+from sphinxify import CodeBlockTransform, process_doc
 
 FIND_FUNC_RE = r"(.*)\n\s*((?:(?:public|protected|private|static|final|synchronized|abstract|default|native)\s+)+)(?:([\w<>[\]]+)\s+)?(\w+)\s*\(([^)]*)\)"
 
@@ -53,7 +54,9 @@ def java_type_to_python(type: str) -> str:
     return type
 
 
-def process_raw(txt: str) -> str:
+def process_raw(
+    txt: str, *, code_block_transform: Optional[CodeBlockTransform] = None
+) -> str:
     """Convert the first doc comment in txt into Sphinx reST."""
 
     # remove diff formatting if present
@@ -61,7 +64,7 @@ def process_raw(txt: str) -> str:
 
     # try to find a function definition
     s = re.split(FIND_FUNC_RE, txt)
-    return process_doc(s[0])
+    return process_doc(s[0], code_block_transform=code_block_transform)
 
 
 def process_yamlgen(txt: str) -> str:
