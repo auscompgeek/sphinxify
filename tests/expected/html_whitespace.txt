@@ -1,6 +1,0 @@
-Get the raw output ratio of the duty cycle signal.
-
-0 means always low, an output equal to
-GetOutputScaleFactor() means always high.
-
-:returns: output ratio in raw units
