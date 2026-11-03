@@ -20,6 +20,18 @@ use to run sphinxify on the input also.
 
 There is also a `sphinxify yaml` mode for the [robotpy-ctre][].
 
+## HTML in comments
+
+HTML is parsed with Python's standard-library `HTMLParser`. Simple rectangular
+`<table>` elements become reST `list-table` directives, including captions and
+leading `<th>` header rows. Inline formatting, links, `<code>`/`<tt>`, paragraphs,
+line breaks, ordered/unordered lists, and definition lists are supported.
+HTML headings become reST rubrics, suitable for embedding in API docstrings.
+
+Nested tables, merged cells (`rowspan`/`colspan`), and incomplete or irregular
+tables are left as HTML rather than losing their contents. Unknown tags are
+preserved, including C++ template arguments. Code blocks bypass HTML conversion.
+
 ## Transforming code examples
 
 `Doc.from_comment`, `process_doc`, and `process_raw` accept an optional

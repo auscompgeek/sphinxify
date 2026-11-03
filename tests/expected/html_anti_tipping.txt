@@ -1,0 +1,15 @@
+.. rubric:: Usage
+
+#. Instantiate with initial configuration parameters.
+
+#. Call Calculate() periodically
+   (e.g. once per control loop).
+#. Add the resulting correction to your drive command.
+
+.. rubric:: Tuning
+
+All three parameters depend on the robot.
+
+- First threshold
+
+- Second threshold

@@ -1,0 +1,12 @@
+.. list-table:: Positive trigger command bindings
+   :header-rows: 1
+
+   * - Method
+     - Schedules
+     - Cancels on false
+   * - OnTrue()
+     - On a rising edge
+     - No
+   * - WhileTrue()
+     - On a rising edge
+     - Yes

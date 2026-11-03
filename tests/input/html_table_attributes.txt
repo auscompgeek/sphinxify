@@ -1,0 +1,5 @@
+Before <TABLE title="a > b"><THEAD>
+<TR><TH>Name<TH>Value</THEAD><TBODY>
+<TR><TD>A wrapped
+cell with <I>emphasis</I> &amp; <code>code</code><TD>
+<TR><TD>&lt;T&gt;<TD>&#177;1</TBODY></TABLE> After

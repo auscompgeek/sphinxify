@@ -1,0 +1,2 @@
+std::vector<T> and CommandHelper<Base, Subclass> and <custom>text</custom>
+std::vector<sub> and std::vector<sup>

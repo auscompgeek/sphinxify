@@ -1,0 +1,13 @@
+Before
+
+.. list-table::
+   :header-rows: 1
+
+   * - Name
+     - Value
+   * - A wrapped cell with *emphasis* & ``code``
+     -
+   * - <T>
+     - ±1
+
+After

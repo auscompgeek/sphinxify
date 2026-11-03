@@ -12,12 +12,18 @@ from ._codeblocks import (
     CodeBlockTransform,
     split_comment,
 )
+from ._html import convert_html
 
 __version__ = "0.14"
 
 
 def trim_lines(lines: List[str]) -> List[str]:
-    return "\n".join(lines).strip().split("\n")
+    lines = "\n".join(lines).split("\n")
+    while lines and not lines[0].strip():
+        lines.pop(0)
+    while lines and not lines[-1].strip():
+        lines.pop()
+    return lines or [""]
 
 
 @dataclass
@@ -31,22 +37,54 @@ _Section = List[Union[str, _Literal]]
 
 def _render_section(section: _Section) -> str:
     lines: List[str] = []
+    prose: List[str] = []
+
+    # Only collision-free placeholders enter the parser, so containers remain
+    # open across literals without exposing code to prose/HTML conversion.
+    prefix = "\x00sphinxify-block-"
+    source = "\n".join(
+        item if isinstance(item, str) else item.block.text for item in section
+    )
+    while prefix in source:
+        prefix += "-"
+    blocks: Dict[str, Tuple[str, str]] = {}
+    literal_lines: Dict[str, str] = {}
     for item in section:
         if isinstance(item, str):
-            # Normalize prose blank lines, never the contents of a literal.
-            if item.strip():
-                lines.append(item)
-            elif lines and lines[-1] != "":
-                lines.append("")
+            prose.append(item)
         else:
-            if lines and lines[-1] != "":
-                lines.append("")
             block = item.block
             directive = ".. code-block:: " + block.language if block.language else "::"
-            lines.extend([item.indent + directive, ""])
-            lines.extend(item.indent + "   " + line for line in block.text.split("\n"))
+            literal = "\n\n" + directive + "\n\n"
+            # Keep line contents opaque until all HTML layout and whitespace
+            # normalization is complete. Only generated indentation is exposed.
+            protected = []
+            for line in block.text.split("\n"):
+                key = prefix + "line-" + str(len(literal_lines)) + "\x00"
+                literal_lines[key] = line
+                protected.append("   " + key)
+            literal += "\n".join(protected)
+            key = prefix + str(len(blocks)) + "\x00"
+            blocks[key] = (literal + "\n\n", item.indent)
+            prose.append(key)
+    # Protect paired HTML code elements before escaping prose underscores.
+    text = re.sub(
+        r"<(code|tt)\b[^>]*>.*?</\1\s*>|\B_\b",
+        lambda match: match[0] if match[1] else r"\_",
+        "\n".join(prose),
+        flags=re.I | re.S,
+    )
+    for line in convert_html(text, blocks).splitlines():
+        if line:
+            # Whitespace-only literal lines carry indentation and must not be
+            # collapsed with surrounding paragraph separators.
+            lines.append(line.rstrip() if line.strip() else line)
+        elif lines and lines[-1] != "":
             lines.append("")
-    return "\n".join(lines).strip()
+    result = "\n".join(lines).strip()
+    for key, line in literal_lines.items():
+        result = result.replace(key, line)
+    return result
 
 
 @dataclass
@@ -132,6 +170,13 @@ class Doc:
                 continue
 
             line = token.strip()
+            # Historically <p> was stripped before routing Doxygen fields.
+            # Keep that behavior for prefixed commands without removing normal
+            # HTML paragraph boundaries from prose.
+            if line.startswith("<p>") and line[3:].lstrip().startswith(("@", "\\")):
+                line = line[3:].lstrip()
+                if line.endswith("</p>"):
+                    line = line[:-4].rstrip()
             if not line:
                 # Layout whitespace before a block must not detach it from its
                 # parameter, return, deprecation, or note section.
@@ -165,8 +210,6 @@ class Doc:
                 line = ".. note:: " + line[len("@note ") :]
                 begin_block = True
             else:
-                line = line.replace("<p>", "").replace("<br>", "\n")
-
                 p = re.search(r"^[\\@]param\W+(\w+)", line)
                 if p:
                     line = re.sub(r"^[\\@]param\W+\w+(\W+)?", "", line)
@@ -190,27 +233,8 @@ class Doc:
 
             line = re.sub(r"{@code ([^}]+)}", r"``\1``", line)
 
-            line = line.replace("<ul>", "").replace("</ul>", "")
-            line = line.replace("<li>", "- ").replace("</li>", "")
             if line.startswith(r"\li "):
                 line = "-" + line[3:]
-
-            for tag, inline, role in (
-                ("b", "**", "strong"),
-                ("strong", "**", "strong"),
-                ("i", "*", "emphasis"),
-                ("em", "*", "emphasis"),
-            ):
-                if line.count(f"<{tag}>") == line.count(f"</{tag}>"):
-                    line = re.sub(rf"</?{tag}>", inline, line)
-                else:
-                    line = line.replace(f"<{tag}>", f":{role}:`")
-                    line = line.replace(f"</{tag}>", "`")
-
-            line = line.replace("<sub>", ":sub:`").replace("</sub>", "`")
-            line = line.replace("<sup>", ":sup:`").replace("</sup>", "`")
-
-            line = re.sub(r"\B_\b", r"\\_", line)
 
             line = line.strip()
             if in_block:
@@ -278,7 +302,7 @@ class Doc:
             to_append.append(":returns: " + returns[0])
             to_append += [" " * 10 + line for line in returns[1:]]
 
-        return self.desc + "\n".join(to_append).rstrip()
+        return self.desc + "\n".join(to_append).rstrip("\n")
 
 
 def process_doc(
